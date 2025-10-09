@@ -18,3 +18,37 @@
  *
  * 5. Export the model using module.exports so it can be imported and used in other files.
  */
+
+const mongoose = require('mongoose');
+
+
+// Define the Schema
+const customerSchema = new mongoose.Schema({
+    name: {
+        type: String
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    phone: {
+        type: String
+    },
+    address: {
+        type: String
+    },
+    myCart: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Cart"
+    },
+    createdAt: {
+        type: mongoose.Schema.Types.Date,
+        default: Date.now()
+    },
+});
+
+
+// Create the Customer Model based on the schema
+const Customer = mongoose.model('customer', customerSchema);
+module.exports = Customer;

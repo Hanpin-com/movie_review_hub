@@ -2,6 +2,7 @@
  * TODO: 1. Import and configure the 'dotenv' package at the top of server.js to load environment variables.
  * require('dotenv').config();
  */
+require('dotenv').config()
 
 const express = require("express");
 const { productsRoute } = require("./modules/products/products-routes");
@@ -15,12 +16,13 @@ const hostname = "localhost";
 const server = express();
 
 // built-in middlewares to parse request body in application-level
-server.use(express.json());
 server.use(express.urlencoded({ extended: true }));
+server.use(express.json());
 
 /**
  * TODO: 2: Add the connectDB middleware in application-level, before defining routes.
  */
+server.use(connectDB);
 
 // Mount all the routes
 server.use(customersRoute);

@@ -4,6 +4,7 @@ const updateCustomerRules = require("./middlewares/update-customers-rules");
 /**
  * TODO: 1. Import your CustomerModel.
  */
+const CustomerModel = require("./customers-model");
 
 const customersRoute = Router();
 
@@ -13,7 +14,14 @@ const customersRoute = Router();
  *    - If no customers exist, respond with an empty array.
  *    - Send the retrieved customers as a JSON response.
  */
-customersRoute.get("/customers", (req, res) => {});
+customersRoute.get("/customers", async (req, res) => {
+    const allCustomers = await CustomerModel.find({});
+    if (!allCustomers) {
+        res.json([]);
+    }else{
+        res.json(allCustomers);
+    }
+});
 
 /**
  * TODO: 3. Retrieve a single customer by ID from the URL parameters.
@@ -21,7 +29,15 @@ customersRoute.get("/customers", (req, res) => {});
  *    - If the customer is not found, respond with a 404 status and an appropriate message.
  *    - If found, return the customer as JSON.
  */
-customersRoute.get("/customers/:id", (req, res) => {});
+customersRoute.get("/customers/:id", async (req, res) => {
+    const customerId = req.params.id;
+    const customer = await CustomerModel.findById(customerId);
+    if (!customer) {
+        res.status(404).send("Customer not found");
+    } else {
+        res.status(200).json(customer);
+    }
+});
 
 /**
  * TODO: 4. Create a new customer using data from the request body.

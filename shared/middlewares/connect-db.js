@@ -13,3 +13,20 @@
  * 8. In the catch block, log the error and throw a new Error with a message like "Database connection failed!".
  * 9. Export the connectDB function using module.exports so it can be used in other parts of the application.
  */
+
+const mongoose = require('mongoose');
+// const dbUrl = "mongodb+srv://LaggyEddie:aoqi100BT@whateveryouwant.jv51u.mongodb.net/?retryWrites=true&w=majority&appName=WhateverYouWant";
+const dbUrl = process.env.DB_URL;
+
+function connectDB(req, res, next) {
+    try {
+        mongoose.connect(process.env.DB_URL, { dbName: "MyOnlineShoppingDB" });
+        console.log("Database connected!");
+        next();
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Database connection failed!");
+    }
+}
+
+module.exports = connectDB;
