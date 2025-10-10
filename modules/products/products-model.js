@@ -16,3 +16,36 @@
  *
  * 5. Export the model using module.exports so it can be used in other parts of the application.
  */
+
+const mongoose = require('mongoose');
+
+// Define the Schema
+const productSchema = new mongoose.Schema({
+    product_name: {
+        type: String,
+        required: true,
+        minlength: 6
+    },
+    description: {
+        type: String,
+        maxlength: 500,
+        default: ""
+    },
+    price: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    category: {
+        type: String,
+        required: true
+    },
+    createdAt: {
+        type: mongoose.Schema.Types.Date,
+        default: Date.now()
+    },
+});
+
+// Create the Product Model based on the schema
+const Product = mongoose.model('Product', productSchema);
+module.exports = Product;

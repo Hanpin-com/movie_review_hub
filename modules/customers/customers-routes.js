@@ -46,7 +46,15 @@ customersRoute.get("/customers/:id", async (req, res) => {
  *    - On failure to add, respond with a 500 error.
  *    - On success, return the newly created customer.
  */
-customersRoute.post("/customers", createCustomerRules, (req, res) => {});
+customersRoute.post("/customers", createCustomerRules, async (req, res) => {
+    try {
+        const newCustomer = await CustomerModel.create(req.body);
+        res.status(201).json(newCustomer);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Failed to create customer");
+    }
+});
 
 /**
  * TODO: 5. Update the customer’s fields.
@@ -57,7 +65,39 @@ customersRoute.post("/customers", createCustomerRules, (req, res) => {});
  *    - Handle failure by responding with 500.
  *    - Return the updated customer on success.
  */
-customersRoute.put("/customers/:id", updateCustomerRules, (req, res) => {});
+customersRoute.put("/customers/:id", updateCustomerRules, async (req, res) => {
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        const customerId = req.params.id;
+        const updates = req.body;
+
+        // check if customer exists
+        const customerExists = await Customer.exists({ _id: customerId });
+        if (!customerExists) {
+            return res.status(404).json({ message: "Customer not found" });
+        }
+
+        // update and return the new document
+        const updatedCustomer = await Customer.findByIdAndUpdate(
+            customerId,
+            updates,
+            { new: true }
+        );
+
+        if (!updatedCustomer) {
+            return res.status(500).json({ message: "Failed to update customer" });
+        }
+
+        res.json(updatedCustomer);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
 
 /**
  * TODO: 6. Delete the customer.
@@ -67,6 +107,26 @@ customersRoute.put("/customers/:id", updateCustomerRules, (req, res) => {});
  *    - On failure, respond with 500.
  *    - Return the deleted customer on success.
  */
-customersRoute.delete("/customers/:id", (req, res) => {});
+customersRoute.delete("/customers/:id", async (req, res) => {
+    try {
+        const customerId = req.params.id;
+
+        const customer = await Customer.findById(customerId);
+        if (!customer) {
+            return res.status(404).json({ message: "Customer not found" });
+        }
+
+        const deletedCustomer = await Customer.findByIdAndDelete(customerId);
+
+        if (!deletedCustomer) {
+            return res.status(500).json({ message: "Failed to delete customer" });
+        }
+
+        res.json(deletedCustomer);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+});
 
 module.exports = { customersRoute };
