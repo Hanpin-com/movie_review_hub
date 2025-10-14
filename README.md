@@ -190,5 +190,3 @@ All responses are returned in **JSON** format with proper HTTP status codes:
 ✍️ **Authors:** Han-Pin Hung & Eduardo Lee
 
 ---
-
-Would you like me to generate this as a ready-to-download `README.md` file for your GitHub repo? 📄✨
