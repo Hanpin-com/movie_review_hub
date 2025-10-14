@@ -164,8 +164,8 @@ All responses are returned in **JSON** format with proper HTTP status codes:
 
 | Name              | Contribution                                                                  |
 | ----------------- | ----------------------------------------------------------------------------- |
-| **Han-Pin Hung**  | Movies module (model, routes, validation), server.js middleware, shared utils |
-| **Eduardo Lee** | Reviews & Users modules (model, routes, validation), error handling & testing |
+| **Han-Pin Hung (N01747642)**  | Movies module (model, routes, validation), server.js middleware, shared utils |
+| **Eduardo Lee (N01685266)** | Reviews & Users modules (model, routes, validation), error handling & testing |
 | **Both Members**  | GitHub repo setup, Postman testing, documentation, final integration          |
 
 ---
