@@ -1,70 +1,49 @@
 const { Router } = require("express");
 const reviewsRoute = Router();
 const ReviewModel = require("./reviews-model");
+
 const createReviewRules = require("./middlewares/create-review-rules");
 const updateReviewRules = require("./middlewares/update-review-rules");
+const checkValidation   = require("../../shared/middlewares/check-validation"); 
 
-// GET all reviews
-reviewsRoute.get("/", async (req, res) => {
+reviewsRoute.get("/", async (req, res, next) => {
   try {
     const reviews = await ReviewModel.find();
     res.json(reviews);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error fetching reviews" });
-  }
+  } catch (err) { next(err); }
 });
 
-// GET specific review by ID
-reviewsRoute.get("/:id", async (req, res) => {
+reviewsRoute.get("/:id", async (req, res, next) => {
   try {
     const review = await ReviewModel.findById(req.params.id);
-    if (!review) return res.status(404).json({ message: "Review not found" });
+    if (!review) { const e = new Error("Review not found"); e.status = 404; throw e; }
     res.json(review);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error fetching review" });
-  }
+  } catch (err) { next(err); }
 });
 
-// POST create new review
-reviewsRoute.post("/", createReviewRules, async (req, res) => {
+reviewsRoute.post("/", createReviewRules, checkValidation, async (req, res, next) => {
   try {
-    const newReview = new ReviewModel(req.body);
-    await newReview.save();
+    const newReview = await ReviewModel.create(req.body);
     res.status(201).json(newReview);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error creating review" });
-  }
+  } catch (err) { next(err); }
 });
 
-// PUT update review
-reviewsRoute.put("/:id", updateReviewRules, async (req, res) => {
+reviewsRoute.put("/:id", updateReviewRules, checkValidation, async (req, res, next) => {
   try {
-    const updatedReview = await ReviewModel.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
+    const updated = await ReviewModel.findByIdAndUpdate(
+      req.params.id, req.body, { new: true, runValidators: true }
     );
-    if (!updatedReview) return res.status(404).json({ message: "Review not found" });
-    res.json(updatedReview);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error updating review" });
-  }
+    if (!updated) { const e = new Error("Review not found"); e.status = 404; throw e; }
+    res.json(updated);
+  } catch (err) { next(err); }
 });
 
-// DELETE review
-reviewsRoute.delete("/:id", async (req, res) => {
+reviewsRoute.delete("/:id", async (req, res, next) => {
   try {
-    const deletedReview = await ReviewModel.findByIdAndDelete(req.params.id);
-    if (!deletedReview) return res.status(404).json({ message: "Review not found" });
+    const deleted = await ReviewModel.findByIdAndDelete(req.params.id);
+    if (!deleted) { const e = new Error("Review not found"); e.status = 404; throw e; }
     res.json({ message: "Review deleted successfully" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error deleting review" });
-  }
+  } catch (err) { next(err); }
 });
 
 module.exports = { reviewsRoute };

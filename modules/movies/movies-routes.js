@@ -1,62 +1,51 @@
-const { Router } = require("express");
+const { Router } = require('express');
+const Movie = require('./movies-model'); 
 const moviesRoute = Router();
 
-const createMovieRules = require("./middlewares/create-movies-rules");
-const updateMovieRules = require("./middlewares/update-movies-rules");
-const checkValidation = require("../../../shared/middlewares/check-validation");
-const MovieModel = require("./movies-model");
-
-// GET all movies
-moviesRoute.get("/", async (req, res) => {
+moviesRoute.get('/', async (req, res, next) => {
   try {
-    const movies = await MovieModel.getAllMovies();
-    res.json(movies);
-  } catch (err) {
-    res.status(500).json({ message: "Error fetching movies", error: err.message });
-  }
+    const { search, sortBy = 'title', order = 'asc', page = 1, limit = 10 } = req.query;
+    const query = search ? { title: new RegExp(search, 'i') } : {};
+
+    const data = await Movie.find(query)
+      .sort({ [sortBy]: order === 'asc' ? 1 : -1 })
+      .skip((Number(page) - 1) * Number(limit))
+      .limit(Number(limit));
+
+    const total = await Movie.countDocuments(query);
+    res.json({ data, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
+  } catch (err) { next(err); }
 });
 
-// GET movie by ID
-moviesRoute.get("/:id", async (req, res) => {
+moviesRoute.get('/:id', async (req, res, next) => {
   try {
-    const movie = await MovieModel.getMovieByID(req.params.id);
-    if (!movie) return res.status(404).json({ message: "Movie not found" });
-    res.json(movie);
-  } catch (err) {
-    res.status(500).json({ message: "Error fetching movie", error: err.message });
-  }
+    const doc = await Movie.findById(req.params.id);
+    if (!doc) { const e = new Error('Movie not found'); e.status = 404; throw e; }
+    res.json(doc);
+  } catch (err) { next(err); }
 });
 
-// POST create new movie
-moviesRoute.post("/", createMovieRules, checkValidation, async (req, res) => {
+moviesRoute.post('/', async (req, res, next) => {
   try {
-    const newMovie = await MovieModel.addNewMovie(req.body);
-    res.status(201).json(newMovie);
-  } catch (err) {
-    res.status(500).json({ message: "Error creating movie", error: err.message });
-  }
+    const created = await Movie.create(req.body);
+    res.status(201).json(created);
+  } catch (err) { next(err); }
 });
 
-// PUT update movie
-moviesRoute.put("/:id", updateMovieRules, checkValidation, async (req, res) => {
+moviesRoute.put('/:id', async (req, res, next) => {
   try {
-    const updatedMovie = await MovieModel.updateExistingMovie(req.params.id, req.body);
-    if (!updatedMovie) return res.status(404).json({ message: "Movie not found" });
-    res.json(updatedMovie);
-  } catch (err) {
-    res.status(500).json({ message: "Error updating movie", error: err.message });
-  }
+    const updated = await Movie.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    if (!updated) { const e = new Error('Movie not found'); e.status = 404; throw e; }
+    res.json(updated);
+  } catch (err) { next(err); }
 });
 
-// DELETE movie
-moviesRoute.delete("/:id", async (req, res) => {
+moviesRoute.delete('/:id', async (req, res, next) => {
   try {
-    const deletedMovie = await MovieModel.deleteMovie(req.params.id);
-    if (!deletedMovie) return res.status(404).json({ message: "Movie not found" });
-    res.json({ message: "Movie deleted successfully" });
-  } catch (err) {
-    res.status(500).json({ message: "Error deleting movie", error: err.message });
-  }
+    const deleted = await Movie.findByIdAndDelete(req.params.id);
+    if (!deleted) { const e = new Error('Movie not found'); e.status = 404; throw e; }
+    res.json({ message: 'Movie deleted successfully' });
+  } catch (err) { next(err); }
 });
 
-module.exports = moviesRoute;
+module.exports = { moviesRoute };

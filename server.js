@@ -1,46 +1,35 @@
-/**
- * TODO: 1. Import and configure the 'dotenv' package at the top of server.js to load environment variables.
- * require('dotenv').config();
- */
-require('dotenv').config()
+require('dotenv').config();
+const express = require('express');
+const connectDB = require('./shared/middlewares/connect-db');
 
-const express = require("express");
-const { productsRoute } = require("./modules/products/products-routes");
-const connectDB = require("./shared/middlewares/connect-db");
-const { customersRoute } = require("./modules/customers/customers-routes");
-const { cartsRoute } = require("./modules/carts/carts-routes");
-
-const port = 3000;
-const hostname = "localhost";
+const { usersRoute }   = require('./modules/users/users-routes');
+const { moviesRoute }  = require('./modules/movies/movies-routes');  
+const { reviewsRoute } = require('./modules/reviews/reviews-routes'); 
 
 const server = express();
-
-// built-in middlewares to parse request body in application-level
 server.use(express.urlencoded({ extended: true }));
 server.use(express.json());
 
-/**
- * TODO: 2: Add the connectDB middleware in application-level, before defining routes.
- */
-server.use(connectDB);
+server.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
 
-// Mount all the routes
-server.use(customersRoute);
-server.use(productsRoute);
-server.use(cartsRoute);
+server.use('/api/users', usersRoute);
+server.use('/api/movies', moviesRoute);
+server.use('/api/reviews', reviewsRoute);
 
-// error-handling middleware to logs the error for debugging.
-server.use((error, req, res, next) => {
-  console.log(error);
-  res.status(500).send("Oops! Internal server error!");
+server.use((err, req, res, next) => {
+  console.error(err);
+  res.status(err.status || 500).json({ message: err.message || 'Oops! Internal server error!' });
 });
 
-// Middleware to handle route not found error.
-server.use((req, res, next) => {
-  res.status(404).send(`404! ${req.method} ${req.path} Not Found.`);
-});
+server.use((req, res) => res.status(404).send(`404! ${req.method} ${req.path} Not Found.`));
 
-server.listen(port, hostname, (error) => {
-  if (error) console.log(error.message);
-  else console.log(`Server running on http://${hostname}:${port}`);
-});
+const port = process.env.PORT || 3000;
+const host = process.env.HOST || 'localhost';
+
+(async () => {
+  await connectDB();
+  server.listen(port, host, err => {
+    if (err) console.error(err.message);
+    else console.log(`Server running on http://${host}:${port}`);
+  });
+})();
