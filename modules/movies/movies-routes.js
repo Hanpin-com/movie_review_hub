@@ -1,100 +1,57 @@
-const express = require("express");
-const { body, param, query, validationResult } = require("express-validator");
-const Movie = require("./movies-model");
+const { Router } = require('express');
+const moviesRoute = Router();
+const MovieModel = require('./movies-model');
 
-const router = express.Router();
-
-const validate = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
-  next();
-};
-
-router.post(
-  "/",
-  body("title").isString().notEmpty(),
-  body("genre").isString().notEmpty(),
-  body("year").isInt({ min: 1800, max: 3000 }),
-  body("rating").isFloat({ min: 0, max: 10 }),
-  validate,
-  async (req, res) => {
-    try {
-      const movie = await Movie.create(req.body);
-      res.status(201).json(movie);
-    } catch (err) {
-      res.status(500).json({ message: err.message });
-    }
-  }
-);
-
-router.get(
-  "/",
-  query("page").optional().isInt({ min: 1 }),
-  query("limit").optional().isInt({ min: 1, max: 100 }),
-  async (req, res) => {
-    try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 10;
-      const skip = (page - 1) * limit;
-      const filter = {};
-      if (req.query.title) filter.title = { $regex: req.query.title, $options: "i" };
-      if (req.query.genre) filter.genre = req.query.genre;
-      if (req.query.minRating) filter.rating = { ...(filter.rating || {}), $gte: Number(req.query.minRating) };
-      if (req.query.maxRating) filter.rating = { ...(filter.rating || {}), $lte: Number(req.query.maxRating) };
-      if (req.query.year) filter.year = Number(req.query.year);
-      let sort = {};
-      if (req.query.sortBy) {
-        const [field, order] = req.query.sortBy.split(":");
-        sort[field] = order === "desc" ? -1 : 1;
-      } else {
-        sort = { createdAt: -1 };
-      }
-      const total = await Movie.countDocuments(filter);
-      const movies = await Movie.find(filter).sort(sort).skip(skip).limit(limit).exec();
-      res.json({ page, limit, totalPages: Math.ceil(total / limit), total, data: movies });
-    } catch (err) {
-      res.status(500).json({ message: err.message });
-    }
-  }
-);
-
-router.get("/:id", param("id").isMongoId(), validate, async (req, res) => {
+// GET /api/movies?search=&sortBy=releaseYear&order=desc&page=1&limit=10
+moviesRoute.get('/', async (req, res, next) => {
   try {
-    const movie = await Movie.findById(req.params.id);
-    if (!movie) return res.status(404).json({ message: "Movie not found" });
-    res.json(movie);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+    const { search, sortBy = 'title', order = 'asc', page = 1, limit = 10 } = req.query;
+    const query = search ? { title: new RegExp(String(search), 'i') } : {};
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const [data, total] = await Promise.all([
+      MovieModel.find(query)
+        .sort({ [sortBy]: order === 'asc' ? 1 : -1 })
+        .skip(skip)
+        .limit(Number(limit)),
+      MovieModel.countDocuments(query)
+    ]);
+
+    res.json({ data, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
+  } catch (err) { next(err); }
 });
 
-router.put(
-  "/:id",
-  param("id").isMongoId(),
-  body("title").optional().isString().notEmpty(),
-  body("genre").optional().isString().notEmpty(),
-  body("year").optional().isInt({ min: 1800, max: 3000 }),
-  body("rating").optional().isFloat({ min: 0, max: 10 }),
-  validate,
-  async (req, res) => {
-    try {
-      const movie = await Movie.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-      if (!movie) return res.status(404).json({ message: "Movie not found" });
-      res.json(movie);
-    } catch (err) {
-      res.status(500).json({ message: err.message });
-    }
-  }
-);
-
-router.delete("/:id", param("id").isMongoId(), validate, async (req, res) => {
+moviesRoute.get('/:id', async (req, res, next) => {
   try {
-    const movie = await Movie.findByIdAndDelete(req.params.id);
-    if (!movie) return res.status(404).json({ message: "Movie not found" });
-    res.json({ message: "Deleted", id: movie._id });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+    const doc = await MovieModel.findById(req.params.id);
+    if (!doc) { const e = new Error('Movie not found'); e.status = 404; throw e; }
+    res.json(doc);
+  } catch (err) { next(err); }
 });
 
-module.exports = router;
+moviesRoute.post('/', async (req, res, next) => {
+  try {
+    const created = await MovieModel.create(req.body);
+    res.status(201).json(created);
+  } catch (err) { next(err); }
+});
+
+moviesRoute.put('/:id', async (req, res, next) => {
+  try {
+    const updated = await MovieModel.findByIdAndUpdate(
+      req.params.id, req.body, { new: true, runValidators: true }
+    );
+    if (!updated) { const e = new Error('Movie not found'); e.status = 404; throw e; }
+    res.json(updated);
+  } catch (err) { next(err); }
+});
+
+moviesRoute.delete('/:id', async (req, res, next) => {
+  try {
+    const deleted = await MovieModel.findByIdAndDelete(req.params.id);
+    if (!deleted) { const e = new Error('Movie not found'); e.status = 404; throw e; }
+    res.json({ message: 'Movie deleted successfully' });
+  } catch (err) { next(err); }
+});
+
+module.exports = { moviesRoute };

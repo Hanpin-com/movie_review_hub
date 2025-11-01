@@ -1,94 +1,69 @@
-const express = require("express");
-const { body, param, query, validationResult } = require("express-validator");
-const User = require("./users-model");
+const { Router } = require('express');
+const usersRoute = Router();
 
-const router = express.Router();
+const createUserRules = require('./middlewares/create-users-rules');
+const updateUserRules = require('./middlewares/update-users-rules');
+const checkValidation = require('../../shared/middlewares/check-validation');
+const UserModel = require('./users-model');
 
-const validate = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
-  next();
-};
-
-router.post(
-  "/",
-  body("username").isString().notEmpty(),
-  body("email").isEmail(),
-  body("password").isLength({ min: 6 }),
-  validate,
-  async (req, res) => {
-    try {
-      const exists = await User.findOne({ email: req.body.email });
-      if (exists) return res.status(400).json({ message: "Email already in use" });
-      const user = await User.create(req.body);
-      res.status(201).json(user);
-    } catch (err) {
-      res.status(500).json({ message: err.message });
-    }
-  }
-);
-
-router.get(
-  "/",
-  query("page").optional().isInt({ min: 1 }),
-  query("limit").optional().isInt({ min: 1, max: 100 }),
-  async (req, res) => {
-    try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 10;
-      const skip = (page - 1) * limit;
-      const filter = {};
-      if (req.query.username) filter.username = { $regex: req.query.username, $options: "i" };
-      if (req.query.email) filter.email = req.query.email;
-      const total = await User.countDocuments(filter);
-      const users = await User.find(filter).skip(skip).limit(limit).select("-password").exec();
-      res.json({ page, limit, totalPages: Math.ceil(total / limit), total, data: users });
-    } catch (err) {
-      res.status(500).json({ message: err.message });
-    }
-  }
-);
-
-router.get("/:id", param("id").isMongoId(), validate, async (req, res) => {
+// GET /api/users?search=&sortBy=username&order=asc&page=1&limit=10
+usersRoute.get('/', async (req, res, next) => {
   try {
-    const user = await User.findById(req.params.id).select("-password");
-    if (!user) return res.status(404).json({ message: "User not found" });
-    res.json(user);
+    const { search, sortBy = 'username', order = 'asc', page = 1, limit = 10 } = req.query;
+    const q = search ? {
+      $or: [
+        { username: new RegExp(String(search), 'i') },
+        { email:    new RegExp(String(search), 'i') }
+      ]
+    } : {};
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const [data, total] = await Promise.all([
+      UserModel.find(q)
+        .sort({ [sortBy]: order === 'asc' ? 1 : -1 })
+        .skip(skip)
+        .limit(Number(limit)),
+      UserModel.countDocuments(q)
+    ]);
+
+    res.json({ data, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
+  } catch (err) { next(err); }
+});
+
+usersRoute.get('/:id', async (req, res, next) => {
+  try {
+    const doc = await UserModel.findById(req.params.id);
+    if (!doc) { const e = new Error('User not found'); e.status = 404; throw e; }
+    res.json(doc);
+  } catch (err) { next(err); }
+});
+
+usersRoute.post('/', createUserRules, checkValidation, async (req, res, next) => {
+  try {
+    const created = await UserModel.create(req.body);
+    res.status(201).json(created);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    if (err.code === 11000) { err.status = 409; err.message = 'Duplicate username/email'; }
+    next(err);
   }
 });
 
-router.put(
-  "/:id",
-  param("id").isMongoId(),
-  body("username").optional().isString().notEmpty(),
-  body("email").optional().isEmail(),
-  body("password").optional().isLength({ min: 6 }),
-  validate,
-  async (req, res) => {
-    try {
-      if (req.body.email) {
-        const existing = await User.findOne({ email: req.body.email, _id: { $ne: req.params.id } });
-        if (existing) return res.status(400).json({ message: "Email already in use" });
-      }
-      const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }).select("-password");
-      if (!user) return res.status(404).json({ message: "User not found" });
-      res.json(user);
-    } catch (err) {
-      res.status(500).json({ message: err.message });
-    }
-  }
-);
-
-router.delete("/:id", param("id").isMongoId(), validate, async (req, res) => {
+usersRoute.put('/:id', updateUserRules, checkValidation, async (req, res, next) => {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
-    res.json({ message: "Deleted", id: user._id });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-    }
+    const updated = await UserModel.findByIdAndUpdate(
+      req.params.id, req.body, { new: true, runValidators: true }
+    );
+    if (!updated) { const e = new Error('User not found'); e.status = 404; throw e; }
+    res.json(updated);
+  } catch (err) { next(err); }
 });
 
-module.exports = router;
+usersRoute.delete('/:id', async (req, res, next) => {
+  try {
+    const deleted = await UserModel.findByIdAndDelete(req.params.id);
+    if (!deleted) { const e = new Error('User not found'); e.status = 404; throw e; }
+    res.json({ message: 'User deleted successfully' });
+  } catch (err) { next(err); }
+});
+
+module.exports = { usersRoute };

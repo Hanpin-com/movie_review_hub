@@ -1,10 +1,12 @@
-const { validationResult } = require("express-validator");
+const { validationResult } = require('express-validator');
 
-function checkValidation(req, res, next) {
+module.exports = function checkValidation(req, res, next) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    const err = new Error('Validation failed');
+    err.status = 400;
+    err.details = errors.array();
+    return next(err);
   }
   next();
-}
-module.exports = checkValidation;
+};
