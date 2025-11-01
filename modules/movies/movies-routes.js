@@ -2,7 +2,7 @@ const { Router } = require('express');
 const moviesRoute = Router();
 const MovieModel = require('./movies-model');
 
-// GET /api/movies?search=&sortBy=releaseYear&order=desc&page=1&limit=10
+// GET /api/movies
 moviesRoute.get('/', async (req, res, next) => {
   try {
     const { search, sortBy = 'title', order = 'asc', page = 1, limit = 10 } = req.query;

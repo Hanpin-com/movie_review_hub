@@ -6,7 +6,7 @@ const updateUserRules = require('./middlewares/update-users-rules');
 const checkValidation = require('../../shared/middlewares/check-validation');
 const UserModel = require('./users-model');
 
-// GET /api/users?search=&sortBy=username&order=asc&page=1&limit=10
+// GET /api/users
 usersRoute.get('/', async (req, res, next) => {
   try {
     const { search, sortBy = 'username', order = 'asc', page = 1, limit = 10 } = req.query;

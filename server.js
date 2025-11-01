@@ -49,12 +49,12 @@ server.use((err, req, res, next) => {
 (async () => {
   try {
     await connectDB(); // requires MONGODB_URI
-    console.log('✅ MongoDB connected');
+    console.log('MongoDB connected');
     server.listen(port, hostname, () => {
       console.log(`Server running on http://${hostname}:${port}`);
     });
   } catch (e) {
-    console.error('❌ Failed to start server:', e);
+    console.error('Failed to start server:', e);
     process.exit(1);
   }
 })();
