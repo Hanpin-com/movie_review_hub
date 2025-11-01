@@ -1,6 +1,6 @@
 const express = require("express");
 const { body, param, query, validationResult } = require("express-validator");
-const Movie = require("./models/movie.model");
+const Movie = require("./movies-model");
 
 const router = express.Router();
 

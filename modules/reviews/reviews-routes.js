@@ -1,10 +1,8 @@
-const express = require("express");
+const { Router } = require("express");
 const { body, param, query, validationResult } = require("express-validator");
-const Review = require("./models/review.model");
-const Movie = require("../movies/models/movie.model");
-const User = require("../users/models/user.model");
 
-const router = express.Router();
+const ReviewModel = require("./reviews-model"); 
+const reviewsRoute = Router();
 
 const validate = (req, res, next) => {
   const errors = validationResult(req);
@@ -12,90 +10,135 @@ const validate = (req, res, next) => {
   next();
 };
 
-router.post(
+/**
+ * POST /api/reviews
+ * body: { movieId(ObjectId), userId(ObjectId), rating(1-5), comment(string) }
+ */
+reviewsRoute.post(
   "/",
-  body("movieId").isMongoId(),
-  body("userId").isMongoId(),
-  body("comment").isString().notEmpty(),
-  body("score").isFloat({ min: 0, max: 10 }),
+  body("movieId").isMongoId().withMessage("movieId must be a valid ObjectId"),
+  body("userId").isMongoId().withMessage("userId must be a valid ObjectId"),
+  body("comment").isString().notEmpty().withMessage("comment is required"),
+  body("rating").isInt({ min: 1, max: 5 }).withMessage("rating must be 1–5"),
   validate,
-  async (req, res) => {
+  async (req, res, next) => {
     try {
-      const movie = await Movie.findById(req.body.movieId);
-      if (!movie) return res.status(400).json({ message: "Invalid movieId" });
-      const user = await User.findById(req.body.userId);
-      if (!user) return res.status(400).json({ message: "Invalid userId" });
-      const review = await Review.create(req.body);
-      res.status(201).json(review);
-    } catch (err) {
-      res.status(500).json({ message: err.message });
-    }
+      const created = await ReviewModel.create(req.body);
+      res.status(201).json(created);
+    } catch (err) { next(err); }
   }
 );
 
-router.get(
+/**
+ * GET /api/reviews
+ */
+reviewsRoute.get(
   "/",
   query("page").optional().isInt({ min: 1 }),
   query("limit").optional().isInt({ min: 1, max: 100 }),
-  async (req, res) => {
-    try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 10;
-      const skip = (page - 1) * limit;
-      const filter = {};
-      if (req.query.movieId) filter.movieId = req.query.movieId;
-      if (req.query.userId) filter.userId = req.query.userId;
-      if (req.query.minScore) filter.score = { ...(filter.score || {}), $gte: Number(req.query.minScore) };
-      if (req.query.maxScore) filter.score = { ...(filter.score || {}), $lte: Number(req.query.maxScore) };
-      let sort = { createdAt: -1 };
-      if (req.query.sortBy) {
-        const [field, order] = req.query.sortBy.split(":");
-        sort = { [field]: order === "desc" ? -1 : 1 };
-      }
-      const total = await Review.countDocuments(filter);
-      const reviews = await Review.find(filter).sort(sort).skip(skip).limit(limit).populate("userId", "username email").populate("movieId", "title genre").exec();
-      res.json({ page, limit, totalPages: Math.ceil(total / limit), total, data: reviews });
-    } catch (err) {
-      res.status(500).json({ message: err.message });
-    }
-  }
-);
-
-router.get("/:id", param("id").isMongoId(), validate, async (req, res) => {
-  try {
-    const review = await Review.findById(req.params.id).populate("userId", "username email").populate("movieId", "title");
-    if (!review) return res.status(404).json({ message: "Review not found" });
-    res.json(review);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-router.put(
-  "/:id",
-  param("id").isMongoId(),
-  body("comment").optional().isString().notEmpty(),
-  body("score").optional().isFloat({ min: 0, max: 10 }),
   validate,
-  async (req, res) => {
+  async (req, res, next) => {
     try {
-      const review = await Review.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-      if (!review) return res.status(404).json({ message: "Review not found" });
-      res.json(review);
-    } catch (err) {
-      res.status(500).json({ message: err.message });
-    }
+      const {
+        search,
+        movieId,
+        userId,
+        minRating,
+        maxRating,
+        sortBy = "createdAt",
+        order = "desc",
+        page = 1,
+        limit = 10
+      } = req.query;
+
+      const q = {};
+      if (search) q.comment = new RegExp(String(search), "i");
+      if (movieId) q.movieId = movieId;
+      if (userId)  q.userId  = userId;
+
+      if (minRating || maxRating) {
+        q.rating = {};
+        if (minRating) q.rating.$gte = Number(minRating);
+        if (maxRating) q.rating.$lte = Number(maxRating);
+      }
+
+      const sort = { [sortBy]: String(order).toLowerCase() === "asc" ? 1 : -1 };
+      const skip = (Number(page) - 1) * Number(limit);
+
+      const [data, total] = await Promise.all([
+        ReviewModel.find(q)
+          .populate("userId",  "username email")
+          .populate("movieId", "title genre")
+          .sort(sort)
+          .skip(skip)
+          .limit(Number(limit)),
+        ReviewModel.countDocuments(q),
+      ]);
+
+      res.json({
+        data,
+        total,
+        page: Number(page),
+        pages: Math.ceil(total / Number(limit)),
+      });
+    } catch (err) { next(err); }
   }
 );
 
-router.delete("/:id", param("id").isMongoId(), validate, async (req, res) => {
-  try {
-    const review = await Review.findByIdAndDelete(req.params.id);
-    if (!review) return res.status(404).json({ message: "Review not found" });
-    res.json({ message: "Deleted", id: review._id });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+/**
+ * GET /api/reviews/:id
+ */
+reviewsRoute.get(
+  "/:id",
+  param("id").isMongoId().withMessage("Invalid review id"),
+  validate,
+  async (req, res, next) => {
+    try {
+      const doc = await ReviewModel.findById(req.params.id)
+        .populate("userId",  "username email")
+        .populate("movieId", "title genre");
+      if (!doc) { const e = new Error("Review not found"); e.status = 404; throw e; }
+      res.json(doc);
+    } catch (err) { next(err); }
   }
-});
+);
 
-module.exports = router;
+/**
+ * PUT /api/reviews/:id
+ */
+reviewsRoute.put(
+  "/:id",
+  param("id").isMongoId().withMessage("Invalid review id"),
+  body("comment").optional().isString().notEmpty(),
+  body("rating").optional().isInt({ min: 1, max: 5 }),
+  validate,
+  async (req, res, next) => {
+    try {
+      const updated = await ReviewModel.findByIdAndUpdate(
+        req.params.id,
+        req.body,
+        { new: true, runValidators: true }
+      );
+      if (!updated) { const e = new Error("Review not found"); e.status = 404; throw e; }
+      res.json(updated);
+    } catch (err) { next(err); }
+  }
+);
+
+/**
+ * DELETE /api/reviews/:id
+ */
+reviewsRoute.delete(
+  "/:id",
+  param("id").isMongoId().withMessage("Invalid review id"),
+  validate,
+  async (req, res, next) => {
+    try {
+      const deleted = await ReviewModel.findByIdAndDelete(req.params.id);
+      if (!deleted) { const e = new Error("Review not found"); e.status = 404; throw e; }
+      res.json({ message: "Deleted", id: deleted._id });
+    } catch (err) { next(err); }
+  }
+);
+
+module.exports = { reviewsRoute }; 
