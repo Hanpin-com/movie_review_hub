@@ -1,72 +1,94 @@
-const { Router } = require("express");
-const usersRoute = Router();
+const express = require("express");
+const { body, param, query, validationResult } = require("express-validator");
+const User = require("./models/user.model");
 
-const createUserRules = require("../users/middlewares/create-users-rules");
-const updateUserRules = require("../users/middlewares/update-users-rules");
+const router = express.Router();
 
-const checkValidation = require("../../shared/middlewares/check-validation");
+const validate = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  next();
+};
 
-const UserModel = require("./users-model");
-
-usersRoute.get("/", async (req, res, next) => {
-  try {
-    const users = await UserModel.getAllUsers();
-    res.json(users);
-  } catch (err) {
-    next(err);
-  }
-});
-
-usersRoute.get("/:id", async (req, res, next) => {
-  try {
-    const user = await UserModel.getUserById(req.params.id); 
-    if (!user) {
-      const e = new Error("User not found");
-      e.status = 404;
-      throw e;
+router.post(
+  "/",
+  body("username").isString().notEmpty(),
+  body("email").isEmail(),
+  body("password").isLength({ min: 6 }),
+  validate,
+  async (req, res) => {
+    try {
+      const exists = await User.findOne({ email: req.body.email });
+      if (exists) return res.status(400).json({ message: "Email already in use" });
+      const user = await User.create(req.body);
+      res.status(201).json(user);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
     }
+  }
+);
+
+router.get(
+  "/",
+  query("page").optional().isInt({ min: 1 }),
+  query("limit").optional().isInt({ min: 1, max: 100 }),
+  async (req, res) => {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+      const filter = {};
+      if (req.query.username) filter.username = { $regex: req.query.username, $options: "i" };
+      if (req.query.email) filter.email = req.query.email;
+      const total = await User.countDocuments(filter);
+      const users = await User.find(filter).skip(skip).limit(limit).select("-password").exec();
+      res.json({ page, limit, totalPages: Math.ceil(total / limit), total, data: users });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  }
+);
+
+router.get("/:id", param("id").isMongoId(), validate, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
     res.json(user);
   } catch (err) {
-    next(err);
+    res.status(500).json({ message: err.message });
   }
 });
 
-usersRoute.post("/", createUserRules, checkValidation, async (req, res, next) => {
-  try {
-    const newUser = await UserModel.addNewUser(req.body);
-    res.status(201).json(newUser);
-  } catch (err) {
-    next(err);
-  }
-});
-
-usersRoute.put("/:id", updateUserRules, checkValidation, async (req, res, next) => {
-  try {
-    const updatedUser = await UserModel.updateExistingUser(req.params.id, req.body);
-    if (!updatedUser) {
-      const e = new Error("User not found");
-      e.status = 404;
-      throw e;
+router.put(
+  "/:id",
+  param("id").isMongoId(),
+  body("username").optional().isString().notEmpty(),
+  body("email").optional().isEmail(),
+  body("password").optional().isLength({ min: 6 }),
+  validate,
+  async (req, res) => {
+    try {
+      if (req.body.email) {
+        const existing = await User.findOne({ email: req.body.email, _id: { $ne: req.params.id } });
+        if (existing) return res.status(400).json({ message: "Email already in use" });
+      }
+      const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }).select("-password");
+      if (!user) return res.status(404).json({ message: "User not found" });
+      res.json(user);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
     }
-    res.json(updatedUser);
-  } catch (err) {
-    next(err);
   }
-});
+);
 
-usersRoute.delete("/:id", async (req, res, next) => {
+router.delete("/:id", param("id").isMongoId(), validate, async (req, res) => {
   try {
-    const deletedUser = await UserModel.deleteUser(req.params.id);
-    if (!deletedUser) {
-      const e = new Error("User not found");
-      e.status = 404;
-      throw e;
-    }
-    res.json({ message: "User deleted successfully" });
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json({ message: "Deleted", id: user._id });
   } catch (err) {
-    next(err);
-  }
+    res.status(500).json({ message: err.message });
+    }
 });
 
-module.exports = { usersRoute }; 
-
+module.exports = router;
