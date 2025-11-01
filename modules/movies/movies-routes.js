@@ -31,9 +31,12 @@ moviesRoute.get('/:id', async (req, res, next) => {
 
 moviesRoute.post('/', async (req, res, next) => {
   try {
-    const created = await MovieModel.create(req.body);
-    res.status(201).json(created);
-  } catch (err) { next(err); }
+    const movie = new MovieModel(req.body); 
+    const savedMovie = await movie.save();  
+    res.status(201).json(savedMovie); 
+  } catch (err) {
+    next(err);
+  }
 });
 
 moviesRoute.put('/:id', async (req, res, next) => {
