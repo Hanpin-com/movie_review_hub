@@ -1,18 +1,26 @@
-## 📝 Project Overview
-
-This project is developed as part of **Phase 2 – Modular Architecture Implementation**.
-The main goals are to:
-
-* Design and implement a **feature-based modular architecture**
-* Build CRUD business logic for multiple entities
-* Apply input validation and error handling
-* Use shared middleware to keep the architecture clean, maintainable, and scalable
+# 🎬 Movie Review Hub — Phase 3: Full CRUD API with MongoDB Integration
 
 ---
 
-## 📁 1. Project Structure
+## 📝 1. Project Overview
+
+This project is developed as part of **Phase 3 – Full CRUD API with MongoDB Integration**.  
+The goal of this phase is to extend the modular architecture created in Phase 2 by connecting the project to a **MongoDB database**, implementing **real persistence**, and validating the full CRUD flow using **Postman**.
+
+### 🎯 Main Objectives
+
+- Integrate a **MongoDB Atlas database** using Mongoose ORM  
+- Implement **CRUD operations** for Movies, Reviews, and Users  
+- Apply **express-validator** for input validation  
+- Use **shared middleware** for DB connection and validation error handling  
+- Verify all endpoints through **Postman testing**
+
+---
+
+## 📁 2. Project Structure
 
 ```
+
 movie_review_hub/
 │
 ├── modules/
@@ -20,173 +28,193 @@ movie_review_hub/
 │   │   ├── middlewares/
 │   │   │   ├── create-movie-rules.js
 │   │   │   └── update-movie-rules.js
-│   │   ├── movie-model.js
-│   │   └── movie-route.js
+│   │   ├── movies-model.js
+│   │   └── movies-routes.js
 │   │
 │   ├── reviews/
 │   │   ├── middlewares/
 │   │   │   ├── create-reviews-rules.js
 │   │   │   └── update-reviews-rules.js
 │   │   ├── reviews-model.js
-│   │   └── reviews-route.js
+│   │   └── reviews-routes.js
 │   │
 │   └── users/
 │       ├── middlewares/
 │       │   ├── create-users-rules.js
 │       │   └── update-users-rules.js
 │       ├── users-model.js
-│       └── users-route.js
+│       └── users-routes.js
 │
 ├── shared/
 │   ├── middlewares/
 │   │   ├── check-validation.js
 │   │   └── connect-db.js
 │
+├── .env
 ├── server.js
 ├── package.json
-├── package-lock.json
 └── README.md
+
 ```
 
-### 🔸 Architecture Highlights
+### 🔹 Architecture Highlights
 
-* `modules/` → Feature-based structure for Movies, Reviews, and Users
-* `middlewares/` → Each module has its own validation logic
-* `shared/` → Common logic such as DB connection and validation handler
-* `server.js` → Application-level middleware and main entry point
-
----
-
-## 📊 2. Data Structure
-
-Data is stored in JSON files (or can be adapted to a database in the future):
-
-* **Movies**: `id`, `title`, `genre`, `year`, `rating`, `description`
-* **Reviews**: `id`, `movieId`, `userId`, `comment`, `score`
-* **Users**: `id`, `username`, `email`, `password`
+- **Feature-based modules:** Each entity (Movies, Reviews, Users) has its own model, routes, and validation middleware.  
+- **Shared middlewares:** Common logic (DB connection, validation handling) resides in `/shared/middlewares`.  
+- **Separation of concerns:** Routes handle HTTP requests only; business logic resides in models.  
+- **Environment configuration:** `.env` is used for secure DB connection.
 
 ---
 
-## ⚙️ 3. Application-Level Middleware
+## 📊 3. Database Schema (MongoDB + Mongoose)
 
-Implemented in `server.js`:
+The project uses **MongoDB Atlas** as a cloud database, managed through **Mongoose models**.
 
-* `express.json()` and `express.urlencoded({ extended: true })` for parsing requests
-* 404 middleware for unknown routes
-* Global error-handling middleware for catching server errors
+### 🎥 Movie Schema
 
----
+```js
+{
+  title: String,
+  genre: String,
+  director: String,
+  releaseYear: Number,
+  description: String,
+  createdAt: Date
+}
+```
 
-## 🧠 4. Model Logic
+### 👤 User Schema
 
-Each module has its own `model` file that handles all business logic:
+```js
+{
+  username: String,
+  email: String,
+  password: String
+}
+```
 
-* `getAll<Entity>()` → Fetch all records
-* `get<Entity>ById(id)` → Fetch a single record
-* `addNew<Entity>(data)` → Create a new record
-* `updateExisting<Entity>(id, data)` → Update an existing record
-* `delete<Entity>(id)` → Delete a record
+### 📝 Review Schema
 
-⚠️ No business logic is written inside routes.
-All logic is delegated to models.
-
----
-
-## 🧭 5. Routes
-
-Each feature has its own router using `Express.Router()`.
-
-**Movies Routes** (`/api/movies`):
-
-* `GET /` → Get all movies
-* `GET /:id` → Get a single movie
-* `POST /` → Create a movie (with validation)
-* `PUT /:id` → Update a movie (with validation)
-* `DELETE /:id` → Delete a movie
-
-**Reviews Routes** (`/api/reviews`):
-Same structure as movies.
-
-**Users Routes** (`/api/users`):
-Same structure as movies.
+```js
+{
+  movieId: ObjectId, 
+  userId: ObjectId,
+  rating: Number,
+  comment: String,
+  createdAt: Date
+}
+```
 
 ---
 
-## 🧪 6. Route-Level Middleware & Validation
+## ⚙️ 4. Application-Level Middleware (server.js)
 
-Validation is implemented using **express-validator**.
-
-Each module has its own validation rules:
-
-* `create-movie-rules.js` and `update-movie-rules.js`
-* `create-reviews-rules.js` and `update-reviews-rules.js`
-* `create-users-rules.js` and `update-users-rules.js`
-
-✅ Shared validation logic is handled in:
-
-* `shared/middlewares/check-validation.js` — centralizes validation error handling.
+* `dotenv` — Loads environment variables from `.env`
+* `cors()` — Enables CORS for API access
+* `express.json()` & `express.urlencoded()` — Parses incoming requests
+* `connectDB()` — Connects to MongoDB Atlas before the server starts
+* Global error-handling middleware — Returns standardized error JSON
+* 404 middleware — Handles unknown routes gracefully
 
 ---
 
-## 🗃️ 7. Shared Middleware
+## 🧠 5. Model Logic
 
-* `check-validation.js` → Handles validation errors and returns consistent responses.
-* `connect-db.js` → Sets up or abstracts database connection (currently can connect to local data or be extended to real DB).
+Each model file defines database operations using **Mongoose methods**:
 
-This allows reusability and keeps modules clean.
+* `getAll<Entity>()` — Retrieve all documents
+* `get<Entity>ById(id)` — Retrieve a document by ID
+* `addNew<Entity>(data)` — Create a new record
+* `updateExisting<Entity>(id, data)` — Update an existing record
+* `delete<Entity>(id)` — Delete a record
+
+⚠️ No direct DB logic is inside routes — ensuring modularity and maintainability.
+
+---
+
+## 🧭 6. Routes
+
+All feature modules use `Express.Router()` and are mounted in `server.js` under `/api/<entity>`.
+
+### 🎥 Movies Routes (`/api/movies`)
+
+* `GET /` — Get all movies
+* `GET /:id` — Get a single movie
+* `POST /` — Create a movie (validated)
+* `PUT /:id` — Update a movie (validated)
+* `DELETE /:id` — Delete a movie
+
+### 👤 Users Routes (`/api/users`)
+
+* `GET /` — Get all users
+* `POST /` — Create a new user
+* `GET /:id` — Get a user by ID
+* `PUT /:id` — Update a user
+* `DELETE /:id` — Delete a user
+
+### 📝 Reviews Routes (`/api/reviews`)
+
+* `GET /` — Get all reviews
+* `POST /` — Create a new review
+* `GET /:id` — Get review by ID
+* `PUT /:id` — Update review
+* `DELETE /:id` — Delete review
+
+---
+
+## 🧪 7. Validation & Error Handling
+
+Validation is done using **express-validator**, defined in each module’s `/middlewares/` folder.
+Shared validation response handler (`check-validation.js`) ensures consistent JSON output.
 
 ---
 
 ## 📡 8. HTTP Response Format
 
-All responses are returned in **JSON** format with proper HTTP status codes:
+All responses are returned as **JSON**, following RESTful conventions:
 
-| Status Code               | Description                   |
-| ------------------------- | ----------------------------- |
-| 200 OK                    | Successful GET / PUT / DELETE |
-| 201 Created               | Successful POST               |
-| 400 Bad Request           | Validation error              |
-| 404 Not Found             | Resource not found            |
-| 500 Internal Server Error | Server error                  |
+| Status Code               | Meaning                           |
+| ------------------------- | --------------------------------- |
+| 200 OK                    | Successful GET / PUT / DELETE     |
+| 201 Created               | Successfully created a new record |
+| 400 Bad Request           | Validation or input error         |
+| 404 Not Found             | Resource not found                |
+| 500 Internal Server Error | Server-side error                 |
 
 ---
 
-## 🧰 9. Testing
+## 📸 9. Screenshots (Phase 3 Evidence)
 
-* All routes tested with Postman.
-* CRUD operations verified for all entities.
-* Validation and error handling tested through invalid input scenarios.
-* Shared middleware (`check-validation`) confirmed to catch errors globally.
+All the screenshot in the file of "ScreenShot".
+
+All routes tested successfully using **Postman**.
 
 ---
 
 ## 👥 10. Team Contributions
 
-| Name              | Contribution                                                                  |
-| ----------------- | ----------------------------------------------------------------------------- |
-| **Han-Pin Hung (N01747642)**  | Movies module (model, routes, validation), server.js middleware, shared utils |
-| **Eduardo Lee (N01685266)** | Reviews & Users modules (model, routes, validation), error handling & testing |
-| **Both Members**  | GitHub repo setup, Postman testing, documentation, final integration          |
+| Member                       | Contribution                                                                 |
+| ---------------------------- | ---------------------------------------------------------------------------- |
+| **Han-Pin Hung (N01747642)** | Developed server.js, Users module, database integration, and validation      |
+| **Eduardo Lee (N01685266)**  | Movies and Reviews modules, route testing, documentation                     |
+| **Both Members**             | Repository setup, Postman testing, README preparation, and final integration |
 
 ---
 
 ## 🚀 11. Submission Information
 
-* 📎 GitHub Repository: https://github.com/Hanpin-com/movie_review_hub.git
-* 📅 Due Date: **October 13, 2025**
-* ✅ Completed:
-
-  * Feature-based modular architecture
-  * CRUD model logic
-  * Validation middleware
-  * Shared middleware (check-validation, connect-db)
-  * Error handling
-  * API testing
-  * Documentation
+| Item                 | Detail                                                                                                                |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| 📎 GitHub Repository | [https://github.com/Hanpin-com/movie_review_hub.git](https://github.com/Hanpin-com/movie_review_hub.git)              |
+| 📅 Due Date          | **November 3, 2025**                                                                                                  |
+| ✅ Completed Tasks    | MongoDB Integration • Modular Architecture • CRUD Logic • Validation • Error Handling • Documentation • Postman Tests |
 
 ---
 
-✅ **Last Updated:** October 13, 2025
+✅ **Last Updated:** November 1, 2025
 ✍️ **Authors:** Han-Pin Hung & Eduardo Lee
+📘 **Course:** Humber College – CPAN Project Phase 3
+
+```
 
 ---
