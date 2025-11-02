@@ -70,7 +70,8 @@ movie_review_hub/
 
 The project uses **MongoDB Atlas** as a cloud database, managed through **Mongoose models**.
 
-### 🎥 Movie Schema
+(TYPE)
+### 🎥 Movie Schema (movies-model.js)
 
 ```js
 {
@@ -78,11 +79,10 @@ The project uses **MongoDB Atlas** as a cloud database, managed through **Mongoo
   genre: String,
   director: String,
   releaseYear: Number,
-  description: String,
-  createdAt: Date
+  description: String
 }
 ```
-
+(TYPE)
 ### 👤 User Schema
 
 ```js
@@ -93,15 +93,15 @@ The project uses **MongoDB Atlas** as a cloud database, managed through **Mongoo
 }
 ```
 
+(TYPE)
 ### 📝 Review Schema
 
 ```js
 {
-  movieId: ObjectId, 
-  userId: ObjectId,
+  movieId: mongoose.Schema.Types.ObjectId, 
+  userId: mongoose.Schema.Types.ObjectId,
   rating: Number,
-  comment: String,
-  createdAt: Date
+  comment: String
 }
 ```
 
@@ -109,12 +109,12 @@ The project uses **MongoDB Atlas** as a cloud database, managed through **Mongoo
 
 ## ⚙️ 4. Application-Level Middleware (server.js)
 
-* `dotenv` — Loads environment variables from `.env`
+* `dotenv` — Loads environment variables from `.env` (You can see the the screenshot)(https://github.com/Hanpin-com/movie_review_hub/blob/main/ScreenShot/MongoDB-Connect.png)
 * `cors()` — Enables CORS for API access
 * `express.json()` & `express.urlencoded()` — Parses incoming requests
 * `connectDB()` — Connects to MongoDB Atlas before the server starts
 * Global error-handling middleware — Returns standardized error JSON
-* 404 middleware — Handles unknown routes gracefully
+* 404 middleware — Handles unknown routes gracefully (If the file cannnot be found it...)
 
 ---
 
@@ -171,9 +171,15 @@ Shared validation response handler (`check-validation.js`) ensures consistent JS
 
 ## 📸 8. Screenshots (Phase 3 Evidence)
 
-All the screenshot in the file of "ScreenShot".
+> All screenshots are stored in the **/ScreenShot** folder and embedded here for convenience.
 
-All routes tested successfully using **Postman**.
+| # | Screenshot | What it proves |
+|---|---|---|
+| 1️⃣ | ![Server Running](https://github.com/Hanpin-com/movie_review_hub/blob/main/ScreenShot/MongoDB-Connect.png) (https://github.com/Hanpin-com/movie_review_hub/blob/main/ScreenShot/Station-OK.png)| App boots, **✅ MongoDB connected**|
+| 2️⃣ | ![Movies (CRUD) POST + GET + PUT + DELETE](https://github.com/Hanpin-com/movie_review_hub/blob/main/ScreenShot/Movies/Post-Movies.png) (https://github.com/Hanpin-com/movie_review_hub/blob/main/ScreenShot/Movies/Get-Movies.png) (https://github.com/Hanpin-com/movie_review_hub/blob/main/ScreenShot/Movies/Put-Movies.png) (https://github.com/Hanpin-com/movie_review_hub/blob/main/ScreenShot/Movies/Delete-Movies.png) | **/api/movies** create , list flow works , delete movie , update|
+| 3️⃣ | ![Users POST + GET](https://github.com/Hanpin-com/movie_review_hub/blob/main/ScreenShot/Users/Post-Users.png) (https://github.com/Hanpin-com/movie_review_hub/blob/main/ScreenShot/Users/Get-Users.png) | **/api/users** |
+| 4️⃣ | ![Reviews POST + GET](https://github.com/Hanpin-com/movie_review_hub/blob/main/ScreenShot/Reviews/Post-reviews.png) (https://github.com/Hanpin-com/movie_review_hub/blob/main/ScreenShot/Reviews/Get-Reviews.png) | **/api/reviews** |
+| 5️⃣ | ![Project Structure](https://github.com/Hanpin-com/movie_review_hub/tree/main/ScreenShot) | VS Code module structure（movies/reviews/users + shared） |
 
 ---
 
