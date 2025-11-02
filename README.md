@@ -169,21 +169,7 @@ Shared validation response handler (`check-validation.js`) ensures consistent JS
 
 ---
 
-## 📡 8. HTTP Response Format
-
-All responses are returned as **JSON**, following RESTful conventions:
-
-| Status Code               | Meaning                           |
-| ------------------------- | --------------------------------- |
-| 200 OK                    | Successful GET / PUT / DELETE     |
-| 201 Created               | Successfully created a new record |
-| 400 Bad Request           | Validation or input error         |
-| 404 Not Found             | Resource not found                |
-| 500 Internal Server Error | Server-side error                 |
-
----
-
-## 📸 9. Screenshots (Phase 3 Evidence)
+## 📸 8. Screenshots (Phase 3 Evidence)
 
 All the screenshot in the file of "ScreenShot".
 
@@ -191,17 +177,17 @@ All routes tested successfully using **Postman**.
 
 ---
 
-## 👥 10. Team Contributions
+## 👥 9. Team Contributions
 
 | Member                       | Contribution                                                                 |
 | ---------------------------- | ---------------------------------------------------------------------------- |
-| **Han-Pin Hung (N01747642)** | Developed server.js, Users module, database integration, and validation      |
-| **Eduardo Lee (N01685266)**  | Movies and Reviews modules, route testing, documentation                     |
+| **Han-Pin Hung (N01747642)** | Movies and Reviews modules, route testing, documentation      |
+| **Eduardo Lee (N01685266)**  | Developed server.js, Users module, database integration, and validation                     |
 | **Both Members**             | Repository setup, Postman testing, README preparation, and final integration |
 
 ---
 
-## 🚀 11. Submission Information
+## 🚀 10. Submission Information
 
 | Item                 | Detail                                                                                                                |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------- |
