@@ -17,7 +17,7 @@ The goal of this phase is to extend the modular architecture created in Phase 2 
 
 ---
 
-## 📁 2. Project Structure
+## 📁 2. Project Structure (Basically)
 
 ```
 
