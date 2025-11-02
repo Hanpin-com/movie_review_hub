@@ -206,15 +206,12 @@ All routes tested successfully using **Postman**.
 | Item                 | Detail                                                                                                                |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | 📎 GitHub Repository | [https://github.com/Hanpin-com/movie_review_hub.git](https://github.com/Hanpin-com/movie_review_hub.git)              |
-| 📅 Due Date          | **November 3, 2025**                                                                                                  |
+|
 | ✅ Completed Tasks    | MongoDB Integration • Modular Architecture • CRUD Logic • Validation • Error Handling • Documentation • Postman Tests |
 
 ---
 
-✅ **Last Updated:** November 1, 2025
 ✍️ **Authors:** Han-Pin Hung & Eduardo Lee
-📘 **Course:** Humber College – CPAN Project Phase 3
+📘 **Course:** Humber College – Modern Web Technologies-CPAN-212-ONG Phase 3
 
 ```
-
----
