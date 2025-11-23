@@ -17,7 +17,7 @@ function MovieDetailPage() {
         setLoading(true);
         setError("");
 
-        const res = await fetch(`${API_URL}/movies/${id}`);
+        const res = await fetch(`${API_URL}/api/movies/${id}`);
         const text = await res.text();
 
         if (!res.ok) {

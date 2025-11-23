@@ -21,7 +21,7 @@ function MovieEditPage() {
         setLoading(true);
         setError("");
 
-        const res = await fetch(`${API_URL}/movies/${id}`);
+        const res = await fetch(`${API_URL}/api/movies/${id}`);
         const text = await res.text();
 
         if (!res.ok) {
@@ -67,7 +67,7 @@ function MovieEditPage() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/movies/${id}`, {
+      const res = await fetch(`${API_URL}/api/movies/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

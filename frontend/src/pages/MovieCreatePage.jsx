@@ -28,7 +28,7 @@ function MovieCreatePage() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/movies`, {
+      const res = await fetch(`${API_URL}/api/movies`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -50,6 +50,7 @@ function MovieCreatePage() {
         navigate("/movies");
       }, 800);
     } catch (err) {
+      console.error(err);
       setError(err.message || "Failed to create movie");
     }
   }

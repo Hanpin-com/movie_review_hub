@@ -58,4 +58,3 @@ server.use((err, req, res, next) => {
     process.exit(1);
   }
 })();
-

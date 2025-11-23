@@ -13,7 +13,7 @@ function MovieListPage() {
       setLoading(true);
       setError("");
 
-      const res = await fetch(`${API_URL}/movies`);
+      const res = await fetch(`${API_URL}/api/movies`);
 
       const text = await res.text();
 
@@ -21,9 +21,9 @@ function MovieListPage() {
         throw new Error(text || `Failed to load movies (status ${res.status})`);
       }
 
-      let data;
+      let json;
       try {
-        data = JSON.parse(text);
+        json = JSON.parse(text);
       } catch {
         throw new Error(
           "Server did not return valid JSON. Response starts with: " +
@@ -31,7 +31,8 @@ function MovieListPage() {
         );
       }
 
-      setMovies(Array.isArray(data) ? data : []);
+      const data = Array.isArray(json.data) ? json.data : [];
+      setMovies(data);
     } catch (err) {
       console.error(err);
       setError(err.message || "Failed to fetch movies");
@@ -44,12 +45,13 @@ function MovieListPage() {
     if (!confirm("Are you sure you want to delete this movie?")) return;
 
     try {
-      const res = await fetch(`${API_URL}/movies/${id}`, {
+      const res = await fetch(`${API_URL}/api/movies/${id}`, {
         method: "DELETE",
       });
 
+      const text = await res.text();
+
       if (!res.ok) {
-        const text = await res.text();
         throw new Error(text || "Failed to delete movie");
       }
 
