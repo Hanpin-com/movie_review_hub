@@ -13,7 +13,7 @@ function MovieListPage() {
       setLoading(true);
       setError("");
 
-      const res = await fetch(`${API_URL}/api/movies`);
+      const res = await fetch(`${API_URL}/api/movies?limit=1000`);
 
       const text = await res.text();
 
