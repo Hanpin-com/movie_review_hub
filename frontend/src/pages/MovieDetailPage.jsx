@@ -88,6 +88,10 @@ function MovieDetailPage() {
       </p>
 
       <p>
+        <strong>Genre:</strong> {movie.genre || "N/A"}
+      </p>
+
+      <p>
         <strong>Director:</strong> {movie.director || "N/A"}
       </p>
 

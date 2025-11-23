@@ -10,6 +10,7 @@ function MovieEditPage() {
   const [title, setTitle] = useState("");
   const [rating, setRating] = useState("");
   const [director, setDirector] = useState("");
+  const [genre, setGenre] = useState("");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -41,6 +42,7 @@ function MovieEditPage() {
         setTitle(data.title || "");
         setRating(data.rating ?? "");
         setDirector(data.director || "");
+        setGenre(data.genre || "");
       } catch (err) {
         console.error(err);
         setError(err.message || "Failed to fetch movie");
@@ -65,6 +67,10 @@ function MovieEditPage() {
       setError("Rating must be a valid number");
       return;
     }
+    if (!genre.trim()) {
+      setError("Genre is required");
+      return;
+    }
 
     try {
       const res = await fetch(`${API_URL}/api/movies/${id}`, {
@@ -74,6 +80,7 @@ function MovieEditPage() {
           title: title.trim(),
           rating: Number(rating),
           director: director.trim() || undefined,
+          genre: genre.trim(),
         }),
       });
 
@@ -86,7 +93,7 @@ function MovieEditPage() {
       setSuccess("Movie updated successfully!");
 
       setTimeout(() => {
-        navigate(`/movies/${id}`);
+        navigate(`/movies`);
       }, 800);
     } catch (err) {
       console.error(err);
@@ -102,7 +109,7 @@ function MovieEditPage() {
     );
   }
 
-  if (error && !title && !rating && !director) {
+  if (error && !title && !rating && !director && !genre) {
     return (
       <div className="page">
         <p className="error-text">{error}</p>
@@ -136,6 +143,15 @@ function MovieEditPage() {
             value={rating}
             onChange={(e) => setRating(e.target.value)}
             placeholder="e.g. 8.5"
+          />
+        </label>
+
+        <label className="form-field">
+          <span>Genre (required)</span>
+          <input
+            value={genre}
+            onChange={(e) => setGenre(e.target.value)}
+            placeholder="e.g. Action, Drama"
           />
         </label>
 

@@ -13,7 +13,7 @@ function MovieListPage() {
       setLoading(true);
       setError("");
 
-      const res = await fetch(`${API_URL}/api/movies?limit=1000`);
+      const res = await fetch(`${API_URL}/api/movies?limit=100&page=1`);
 
       const text = await res.text();
 
@@ -92,6 +92,7 @@ function MovieListPage() {
             <tr>
               <th>Title</th>
               <th>Rating</th>
+              <th>Genre</th>
               <th className="actions-col">Actions</th>
             </tr>
           </thead>
@@ -104,7 +105,8 @@ function MovieListPage() {
                     {movie.title}
                   </Link>
                 </td>
-                <td>{movie.rating}</td>
+                <td>{movie.rating ?? "N/A"}</td>
+                <td>{movie.genre || "N/A"}</td>
                 <td className="actions-col">
                   <Link
                     to={`/movies/${movie._id}/edit`}

@@ -7,6 +7,7 @@ function MovieCreatePage() {
   const [title, setTitle] = useState("");
   const [rating, setRating] = useState("");
   const [director, setDirector] = useState("");
+  const [genre, setGenre] = useState("");
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -26,6 +27,10 @@ function MovieCreatePage() {
       setError("Rating must be a valid number");
       return;
     }
+    if (!genre.trim()) {
+      setError("Genre is required");
+      return;
+    }
 
     try {
       const res = await fetch(`${API_URL}/api/movies`, {
@@ -35,6 +40,7 @@ function MovieCreatePage() {
           title: title.trim(),
           rating: Number(rating),
           director: director.trim() || undefined,
+          genre: genre.trim(),
         }),
       });
 
@@ -78,6 +84,15 @@ function MovieCreatePage() {
             value={rating}
             onChange={(e) => setRating(e.target.value)}
             placeholder="e.g. 8.5"
+          />
+        </label>
+
+        <label className="form-field">
+          <span>Genre (required)</span>
+          <input
+            value={genre}
+            onChange={(e) => setGenre(e.target.value)}
+            placeholder="e.g. Action, Drama"
           />
         </label>
 
