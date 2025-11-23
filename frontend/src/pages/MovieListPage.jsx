@@ -14,7 +14,6 @@ function MovieListPage() {
       setError("");
 
       const res = await fetch(`${API_URL}/api/movies?limit=100&page=1`);
-
       const text = await res.text();
 
       if (!res.ok) {
@@ -87,46 +86,58 @@ function MovieListPage() {
       {movies.length === 0 ? (
         <p>No movies found. Try adding one!</p>
       ) : (
-        <table className="movie-table">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Rating</th>
-              <th>Genre</th>
-              <th className="actions-col">Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {movies.map((movie) => (
-              <tr key={movie._id}>
-                <td>
+        <div className="movie-grid">
+          {movies.map((movie) => (
+            <article className="movie-card" key={movie._id}>
+              <div className="movie-card-body">
+                <h2 className="movie-card-title">
                   <Link to={`/movies/${movie._id}`} className="movie-link">
                     {movie.title}
                   </Link>
-                </td>
-                <td>{movie.rating ?? "N/A"}</td>
-                <td>{movie.genre || "N/A"}</td>
-                <td className="actions-col">
-                  <Link
-                    to={`/movies/${movie._id}/edit`}
-                    className="btn btn-sm btn-secondary"
-                  >
-                    Edit
-                  </Link>
+                </h2>
 
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-danger"
-                    onClick={() => handleDelete(movie._id)}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                <p className="movie-card-meta">
+                  <span>Rating:</span>{" "}
+                  <strong>{movie.rating ?? "N/A"}</strong>
+                </p>
+
+                <p className="movie-card-meta">
+                  <span>Genre:</span> {movie.genre || "N/A"}
+                </p>
+
+                {movie.director && (
+                  <p className="movie-card-meta">
+                    <span>Director:</span> {movie.director}
+                  </p>
+                )}
+              </div>
+
+              <div className="movie-card-actions">
+                <Link
+                  to={`/movies/${movie._id}`}
+                  className="btn btn-sm btn-secondary"
+                >
+                  Details
+                </Link>
+
+                <Link
+                  to={`/movies/${movie._id}/edit`}
+                  className="btn btn-sm"
+                >
+                  Edit
+                </Link>
+
+                <button
+                  type="button"
+                  className="btn btn-sm btn-danger"
+                  onClick={() => handleDelete(movie._id)}
+                >
+                  Delete
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
       )}
     </div>
   );
