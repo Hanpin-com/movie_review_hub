@@ -26,7 +26,9 @@ function MovieEditPage() {
         const text = await res.text();
 
         if (!res.ok) {
-          throw new Error(text || `Failed to load movie (status ${res.status})`);
+          throw new Error(
+            text || `Failed to load movie (status ${res.status})`
+          );
         }
 
         let data;
@@ -90,11 +92,7 @@ function MovieEditPage() {
         throw new Error(text || "Failed to update movie");
       }
 
-      setSuccess("Movie updated successfully!");
-
-      setTimeout(() => {
-        navigate(`/movies`);
-      }, 800);
+      setSuccess("🎉 Movie updated successfully!");
     } catch (err) {
       console.error(err);
       setError(err.message || "Failed to update movie");
@@ -171,6 +169,16 @@ function MovieEditPage() {
         {error && <p className="error-text">{error}</p>}
         {success && <p className="success-text">{success}</p>}
       </form>
+
+      <div style={{ marginTop: "1rem" }}>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={() => navigate("/movies")}
+        >
+          Back to list
+        </button>
+      </div>
     </div>
   );
 }

@@ -45,16 +45,11 @@ function MovieCreatePage() {
       });
 
       const text = await res.text();
-
       if (!res.ok) {
         throw new Error(text || "Failed to create movie");
       }
 
-      setSuccess("Movie created successfully!");
-
-      setTimeout(() => {
-        navigate("/movies");
-      }, 800);
+      setSuccess("🎉 Movie created successfully!");
     } catch (err) {
       console.error(err);
       setError(err.message || "Failed to create movie");
@@ -112,6 +107,16 @@ function MovieCreatePage() {
         {error && <p className="error-text">{error}</p>}
         {success && <p className="success-text">{success}</p>}
       </form>
+
+      <div style={{ marginTop: "1rem" }}>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={() => navigate("/movies")}
+        >
+          Back to list
+        </button>
+      </div>
     </div>
   );
 }
