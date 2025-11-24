@@ -5,7 +5,7 @@
 ## 📝 1. Project Overview
 
 This project represents **Phase 4 – Full Frontend Integration with React**, building on top of the backend CRUD API developed in **Phase 3**.
-In this phase, our team extended the application into a complete **full-stack movie management system**, combining:
+In this phase, our team extended the application into a complete **Full-Stack Movie Management System**, combining:
 
 * **React (frontend UI)**
 * **Express.js (backend API)**
