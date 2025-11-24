@@ -203,18 +203,19 @@ http://localhost:5173/movies
 
 ## 📸 8. Phase 4 Screenshots
 
-（放入 `/ScreenShot/Phase4/`）
+（`movie_review_hub/frontend/ScreenShot/Phase4/`）
 
-| #   | Screenshot            | Description                        |
-| --- | --------------------- | ---------------------------------- |
-| 1️⃣ | *Movie-Grid.png*      | Movie List Page (Card Grid Layout) |
-| 2️⃣ | *Add-Movie.png*       | Add Movie Form                     |
-| 3️⃣ | *Add-Success.png*     | Create movie success message       |
-| 4️⃣ | *Movie-Details.png*   | Detail page                        |
-| 5️⃣ | *Edit-Movie.png*      | Edit form with loaded values       |
-| 6️⃣ | *Edit-Success.png*    | Update success message             |
-| 7️⃣ | *Delete-Movie.png*    | Delete confirmation / list refresh |
-| 8️⃣ | *Backend-Running.png* | Terminal: MongoDB connected        |
+| #   | Screenshot              | Description                         |
+| --- | ----------------------- | ----------------------------------- |
+| 1️⃣ | *Movie-Grid.png*        | Movie List Page (Card Grid Layout)  |
+| 2️⃣ | *Add-Movie.png*         | Add Movie Form                      |
+| 3️⃣ | *Add-Success.png*       | Create movie success message        |
+| 4️⃣ | *Movie-Details.png*     | Detail page                         |
+| 5️⃣ | *New-Movie.png*         | Newly added movie displayed in list |
+| 6️⃣ | *Delete-Movie.png*      | Delete confirmation / list refresh  |
+| 7️⃣ | *Backend-Running.png*   | Backend server running (MongoDB OK) |
+| 8️⃣ | *Frontend-Running.png*  | Frontend (Vite) dev server running  |
+
 
 ---
 
