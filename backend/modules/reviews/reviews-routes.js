@@ -4,15 +4,20 @@ const { body, param, query, validationResult } = require('express-validator');
 const ReviewModel = require('./reviews-model');
 const reviewsRoute = Router();
 
+const auth = require('../../shared/middlewares/auth');
+const requireRole = require('../../shared/middlewares/require-role');
+
 const validate = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
   next();
 };
 
-// POST /api/reviews
+// POST /api/reviews  (protected: user or admin)
 reviewsRoute.post(
   '/',
+  auth,
+  requireRole(['user', 'admin']),
   body('movieId').isMongoId().withMessage('movieId must be a valid ObjectId'),
   body('userId').isMongoId().withMessage('userId must be a valid ObjectId'),
   body('comment').isString().notEmpty().withMessage('comment is required'),
@@ -26,7 +31,7 @@ reviewsRoute.post(
   }
 );
 
-// GET /api/reviews?search=&movieId=&userId=&minRating=&maxRating=&sortBy=&order=&page=&limit=
+// GET /api/reviews?search=&movieId=&userId=&minRating=&maxRating=&sortBy=&order=&page=&limit=  (public)
 reviewsRoute.get(
   '/',
   query('page').optional().isInt({ min: 1 }),
@@ -66,7 +71,7 @@ reviewsRoute.get(
   }
 );
 
-// GET /api/reviews/:id
+// GET /api/reviews/:id  (public)
 reviewsRoute.get(
   '/:id',
   param('id').isMongoId().withMessage('Invalid review id'),
@@ -82,9 +87,11 @@ reviewsRoute.get(
   }
 );
 
-// PUT /api/reviews/:id
+// PUT /api/reviews/:id  (protected: user or admin)
 reviewsRoute.put(
   '/:id',
+  auth,
+  requireRole(['user', 'admin']),
   param('id').isMongoId(),
   body('comment').optional().isString().notEmpty(),
   body('rating').optional().isInt({ min: 1, max: 5 }),
@@ -100,9 +107,11 @@ reviewsRoute.put(
   }
 );
 
-// DELETE /api/reviews/:id
+// DELETE /api/reviews/:id  (protected: user or admin)
 reviewsRoute.delete(
   '/:id',
+  auth,
+  requireRole(['user', 'admin']),
   param('id').isMongoId(),
   validate,
   async (req, res, next) => {

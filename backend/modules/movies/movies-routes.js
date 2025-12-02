@@ -2,7 +2,10 @@ const { Router } = require('express');
 const moviesRoute = Router();
 const MovieModel = require('./movies-model');
 
-// GET /api/movies
+const auth = require('../../shared/middlewares/auth');
+const requireRole = require('../../shared/middlewares/require-role');
+
+// GET /api/movies  (public)
 moviesRoute.get('/', async (req, res, next) => {
   try {
     const { search, sortBy = 'title', order = 'asc', page = 1, limit = 10 } = req.query;
@@ -29,7 +32,7 @@ moviesRoute.get('/', async (req, res, next) => {
   }
 });
 
-// GET /api/movies/:id
+// GET /api/movies/:id  (public)
 moviesRoute.get('/:id', async (req, res, next) => {
   try {
     const doc = await MovieModel.findById(req.params.id);
@@ -44,8 +47,8 @@ moviesRoute.get('/:id', async (req, res, next) => {
   }
 });
 
-// POST /api/movies
-moviesRoute.post('/', async (req, res, next) => {
+// POST /api/movies  (protected: admin only)
+moviesRoute.post('/', auth, requireRole(['admin']), async (req, res, next) => {
   try {
     const movie = new MovieModel({
       title: req.body.title,
@@ -63,8 +66,8 @@ moviesRoute.post('/', async (req, res, next) => {
   }
 });
 
-// PUT /api/movies/:id
-moviesRoute.put('/:id', async (req, res, next) => {
+// PUT /api/movies/:id  (protected: admin only)
+moviesRoute.put('/:id', auth, requireRole(['admin']), async (req, res, next) => {
   try {
     const updateData = {
       title: req.body.title,
@@ -99,8 +102,8 @@ moviesRoute.put('/:id', async (req, res, next) => {
   }
 });
 
-// DELETE /api/movies/:id
-moviesRoute.delete('/:id', async (req, res, next) => {
+// DELETE /api/movies/:id  (protected: admin only)
+moviesRoute.delete('/:id', auth, requireRole(['admin']), async (req, res, next) => {
   try {
     const deleted = await MovieModel.findByIdAndDelete(req.params.id);
     if (!deleted) {

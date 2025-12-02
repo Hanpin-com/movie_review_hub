@@ -1,16 +1,55 @@
-import { NavLink } from "react-router-dom";
+import { Link } from 'react-router-dom';
 
-function Navbar() {
+function Navbar({ isLoggedIn, currentUser, onLogout }) {
+  const navStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '0.75rem 1rem',
+    backgroundColor: '#222',
+    color: '#fff',
+    marginBottom: '1rem',
+  };
+
+  const linkStyle = {
+    color: '#fff',
+    textDecoration: 'none',
+    marginRight: '1rem',
+  };
+
   return (
-    <nav className="navbar">
-      <div className="navbar-brand">Movie Review Hub</div>
-      <div className="navbar-links">
-        <NavLink to="/movies" className="nav-link">
-          Movies
-        </NavLink>
-        <NavLink to="/movies/add" className="nav-link">
+    <nav style={navStyle}>
+      <div>
+        <Link to="/movies" style={linkStyle}>
+          Movie Review Hub
+        </Link>
+        <Link to="/movies/new" style={linkStyle}>
           Add Movie
-        </NavLink>
+        </Link>
+      </div>
+
+      <div>
+        {isLoggedIn && currentUser ? (
+          <>
+            <span style={{ marginRight: '1rem', fontSize: '0.9rem' }}>
+              Logged in as <strong>{currentUser.email}</strong>
+              {currentUser.role && ` (${currentUser.role})`}
+            </span>
+            <button
+              onClick={onLogout}
+              style={{
+                padding: '0.25rem 0.75rem',
+                cursor: 'pointer',
+              }}
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <Link to="/login" style={linkStyle}>
+            Login
+          </Link>
+        )}
       </div>
     </nav>
   );

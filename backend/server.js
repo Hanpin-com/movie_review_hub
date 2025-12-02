@@ -9,6 +9,8 @@ const { reviewsRoute } = require('./modules/reviews/reviews-routes');
 
 const connectDB = require('./shared/middlewares/connect-db');
 
+const { authRoute } = require('./modules/auth/auth-routes');
+
 const server   = express();
 const port     = process.env.PORT || 3000;
 const hostname = process.env.HOST || 'localhost';
@@ -22,6 +24,10 @@ server.use(express.json());
 server.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
 
 // mount routes
+server.use('/api/users', usersRoute);
+server.use('/api/movies', moviesRoute);
+server.use('/api/reviews', reviewsRoute);
+server.use('/api/auth', authRoute);
 server.use('/api/users', usersRoute);
 server.use('/api/movies', moviesRoute);
 server.use('/api/reviews', reviewsRoute);

@@ -6,8 +6,32 @@ const updateUserRules = require('./middlewares/update-users-rules');
 const checkValidation = require('../../shared/middlewares/check-validation');
 const UserModel = require('./users-model');
 
-// GET /api/users
-usersRoute.get('/', async (req, res, next) => {
+const auth = require('../../shared/middlewares/auth');
+const requireRole = require('../../shared/middlewares/require-role');
+
+// POST /api/users  (public registration)
+usersRoute.post('/', createUserRules, checkValidation, async (req, res, next) => {
+  try {
+    const payload = {
+      username: req.body.username,
+      email: req.body.email,
+      password: req.body.password,
+      role: 'user', 
+    };
+
+    const created = await UserModel.create(payload);
+    res.status(201).json(created);
+  } catch (err) {
+    if (err.code === 11000) { 
+      err.status = 409; 
+      err.message = 'Duplicate username/email'; 
+    }
+    next(err);
+  }
+});
+
+// GET /api/users  (admin only)
+usersRoute.get('/', auth, requireRole(['admin']), async (req, res, next) => {
   try {
     const { search, sortBy = 'username', order = 'asc', page = 1, limit = 10 } = req.query;
     const q = search ? {
@@ -30,7 +54,8 @@ usersRoute.get('/', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-usersRoute.get('/:id', async (req, res, next) => {
+// GET /api/users/:id  (admin only)
+usersRoute.get('/:id', auth, requireRole(['admin']), async (req, res, next) => {
   try {
     const doc = await UserModel.findById(req.params.id);
     if (!doc) { const e = new Error('User not found'); e.status = 404; throw e; }
@@ -38,27 +63,21 @@ usersRoute.get('/:id', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-usersRoute.post('/', createUserRules, checkValidation, async (req, res, next) => {
-  try {
-    const created = await UserModel.create(req.body);
-    res.status(201).json(created);
-  } catch (err) {
-    if (err.code === 11000) { err.status = 409; err.message = 'Duplicate username/email'; }
-    next(err);
-  }
-});
-
-usersRoute.put('/:id', updateUserRules, checkValidation, async (req, res, next) => {
+// PUT /api/users/:id  (admin only)
+usersRoute.put('/:id', auth, requireRole(['admin']), updateUserRules, checkValidation, async (req, res, next) => {
   try {
     const updated = await UserModel.findByIdAndUpdate(
-      req.params.id, req.body, { new: true, runValidators: true }
+      req.params.id, 
+      req.body, 
+      { new: true, runValidators: true }
     );
     if (!updated) { const e = new Error('User not found'); e.status = 404; throw e; }
     res.json(updated);
   } catch (err) { next(err); }
 });
 
-usersRoute.delete('/:id', async (req, res, next) => {
+// DELETE /api/users/:id  (admin only)
+usersRoute.delete('/:id', auth, requireRole(['admin']), async (req, res, next) => {
   try {
     const deleted = await UserModel.findByIdAndDelete(req.params.id);
     if (!deleted) { const e = new Error('User not found'); e.status = 404; throw e; }
