@@ -5,12 +5,12 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 function RegisterPage() {
   const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
 
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [loading,   setLoading]   = useState(false);
+  const [message,   setMessage]   = useState('');
+  const [error,     setError]     = useState('');
 
   const navigate = useNavigate();
 
@@ -32,10 +32,9 @@ function RegisterPage() {
       if (!res.ok) {
         setError(data.message || 'Registration failed');
       } else {
-        setMessage('Account created');
-        setTimeout(() => navigate('/login'), 800);
+        setMessage('Account created successfully. You can now log in.');
       }
-    } catch (err) {
+    } catch {
       setError('Network error while registering.');
     } finally {
       setLoading(false);
@@ -49,7 +48,10 @@ function RegisterPage() {
       <h1>Register</h1>
       <p>Create a new account.</p>
 
-      <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <form
+        onSubmit={handleRegister}
+        style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
+      >
         <label>
           Username
           <input

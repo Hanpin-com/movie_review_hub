@@ -4,18 +4,19 @@ import { saveAuth } from '../utils/auth';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-function OtpPage() {
+function OtpPage({ setAuth }) {
   const location = useLocation();
   const navigate = useNavigate();
 
   const initialEmail = location.state?.email || '';
 
   const [email, setEmail] = useState(initialEmail);
-  const [otp, setOtp] = useState('');
+  const [otp,   setOtp]   = useState('');
 
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [loading, setLoading]   = useState(false);
+  const [message, setMessage]   = useState('');
+  const [error,   setError]     = useState('');
+  const [success, setSuccess]   = useState(false); 
 
   const handleVerify = async (e) => {
     e.preventDefault();
@@ -37,13 +38,14 @@ function OtpPage() {
       } else {
         if (data.token && data.user) {
           saveAuth(data.token, data.user);
+
+          if (typeof setAuth === 'function') {
+            setAuth({ token: data.token, user: data.user });
+          }
         }
 
         setMessage('OTP verified! You are now logged in.');
-
-        setTimeout(() => {
-          navigate('/movies');
-        }, 800);
+        setSuccess(true);
       }
     } catch (err) {
       console.error(err);
@@ -53,12 +55,36 @@ function OtpPage() {
     }
   };
 
+  if (success) {
+    return (
+      <div style={{ maxWidth: '420px', margin: '2rem auto' }}>
+        <h1>Login Successful</h1>
+        <p style={{ marginTop: '1rem' }}>
+          OTP verified. You are now logged in.
+        </p>
+        <button
+          onClick={() => navigate('/movies')}
+          style={{
+            padding: '0.5rem 1rem',
+            marginTop: '1.5rem',
+            cursor: 'pointer',
+          }}
+        >
+          Go to Movies
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div style={{ maxWidth: '420px', margin: '2rem auto' }}>
       <h1>Verify OTP</h1>
       <p>Enter the OTP sent to your email.</p>
 
-      <form onSubmit={handleVerify} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <form
+        onSubmit={handleVerify}
+        style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
+      >
         <label>
           Email
           <input
