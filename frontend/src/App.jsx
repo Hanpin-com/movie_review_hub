@@ -6,6 +6,7 @@ import MovieCreatePage from "./pages/MovieCreatePage.jsx";
 import MovieDetailPage from "./pages/MovieDetailPage.jsx";
 import MovieEditPage from "./pages/MovieEditPage.jsx";
 
+import RegisterPage from "./pages/RegisterPage";
 import LoginPage from './pages/LoginPage.jsx';
 import OtpPage from './pages/OtpPage.jsx';
 
@@ -40,6 +41,7 @@ function App() {
           <Route path="/movies/:id" element={<MovieDetailPage />} />
           <Route path="/movies/:id/edit" element={<MovieEditPage />} />
 
+          <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/otp" element={<OtpPage />} />
 

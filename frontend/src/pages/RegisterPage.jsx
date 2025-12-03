@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-function LoginPage() {
+function RegisterPage() {
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -13,44 +14,53 @@ function LoginPage() {
 
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage('');
     setError('');
 
     try {
-      const res = await fetch(`${API_BASE}/api/auth/login`, {
+      const res = await fetch(`${API_BASE}/api/users/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, email, password }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.message || 'Login failed');
+        setError(data.message || 'Registration failed');
       } else {
-        setMessage(data.message || 'OTP has been sent to your email.');
-        setTimeout(() => {
-          navigate('/otp', { state: { email } });
-        }, 800);
+        setMessage('Account created');
+        setTimeout(() => navigate('/login'), 800);
       }
     } catch (err) {
-      setError('Network error while logging in.');
+      setError('Network error while registering.');
     } finally {
       setLoading(false);
     }
   };
 
-  const goRegister = () => navigate('/register');
+  const goLogin = () => navigate('/login');
 
   return (
     <div style={{ maxWidth: '420px', margin: '2rem auto' }}>
-      <h1>Login</h1>
-      <p>Enter your email and password to receive an OTP.</p>
+      <h1>Register</h1>
+      <p>Create a new account.</p>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <label>
+          Username
+          <input
+            type="text"
+            required
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            style={{ width: '100%', padding: '0.5rem' }}
+          />
+        </label>
+
         <label>
           Email
           <input
@@ -82,12 +92,12 @@ function LoginPage() {
             cursor: loading ? 'not-allowed' : 'pointer',
           }}
         >
-          {loading ? 'Logging in...' : 'Login'}
+          {loading ? 'Creating account...' : 'Register'}
         </button>
       </form>
 
       <button
-        onClick={goRegister}
+        onClick={goLogin}
         style={{
           padding: '0.5rem 1rem',
           marginTop: '1rem',
@@ -98,7 +108,7 @@ function LoginPage() {
           cursor: 'pointer'
         }}
       >
-        Register
+        Back to Login
       </button>
 
       {message && <p style={{ marginTop: '1rem', color: 'green' }}>{message}</p>}
@@ -107,4 +117,4 @@ function LoginPage() {
   );
 }
 
-export default LoginPage;
+export default RegisterPage;

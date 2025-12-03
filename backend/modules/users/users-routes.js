@@ -1,5 +1,7 @@
 const { Router } = require('express');
 const usersRoute = Router();
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const createUserRules = require('./middlewares/create-users-rules');
 const updateUserRules = require('./middlewares/update-users-rules');
@@ -9,26 +11,61 @@ const UserModel = require('./users-model');
 const auth = require('../../shared/middlewares/auth');
 const requireRole = require('../../shared/middlewares/require-role');
 
-// POST /api/users  (public registration)
-usersRoute.post('/', createUserRules, checkValidation, async (req, res, next) => {
-  try {
-    const payload = {
-      username: req.body.username,
-      email: req.body.email,
-      password: req.body.password,
-      role: 'user', 
-    };
+// POST /api/users/register
+usersRoute.post(
+  "/register",
+  createUserRules,
+  checkValidation,
+  async (req, res, next) => {
+    try {
+      const { username, email, password } = req.body;
 
-    const created = await UserModel.create(payload);
-    res.status(201).json(created);
-  } catch (err) {
-    if (err.code === 11000) { 
-      err.status = 409; 
-      err.message = 'Duplicate username/email'; 
+      const exists = await UserModel.findOne({ email });
+      if (exists) return res.status(400).json({ message: "Email already exists" });
+
+      const hashed = await bcrypt.hash(password, 10);
+
+      const user = await UserModel.create({
+        username,
+        email,
+        password: hashed,
+        role: "user",
+      });
+
+      res.status(201).json({ message: "Account created", userId: user._id });
+    } catch (err) {
+      next(err);
     }
+  }
+);
+
+// POST /api/users/login
+usersRoute.post("/login", async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await UserModel.findOne({ email });
+    if (!user) return res.status(401).json({ message: "Invalid email or password" });
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).json({ message: "Invalid email or password" });
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.json({
+      message: "Login successful",
+      token,
+      user: { id: user._id, username: user.username, email: user.email, role: user.role },
+    });
+  } catch (err) {
     next(err);
   }
 });
+
 
 // GET /api/users  (admin only)
 usersRoute.get('/', auth, requireRole(['admin']), async (req, res, next) => {
