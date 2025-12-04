@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getAuthHeaders } from "../utils/auth"; 
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 function MovieCreatePage() {
   const [title, setTitle] = useState("");
@@ -33,9 +34,18 @@ function MovieCreatePage() {
     }
 
     try {
+      const authHeaders = getAuthHeaders();
+      if (!authHeaders.Authorization) {
+        setError("You are not logged in. Please log in first.");
+        return;
+      }
+
       const res = await fetch(`${API_URL}/api/movies`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders,
+        },
         body: JSON.stringify({
           title: title.trim(),
           rating: Number(rating),
@@ -64,48 +74,6 @@ function MovieCreatePage() {
       </div>
 
       <form onSubmit={handleSubmit} className="form-card">
-        <label className="form-field">
-          <span>Title (required)</span>
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Movie title"
-          />
-        </label>
-
-        <label className="form-field">
-          <span>Rating (number)</span>
-          <input
-            value={rating}
-            onChange={(e) => setRating(e.target.value)}
-            placeholder="e.g. 8.5"
-          />
-        </label>
-
-        <label className="form-field">
-          <span>Genre (required)</span>
-          <input
-            value={genre}
-            onChange={(e) => setGenre(e.target.value)}
-            placeholder="e.g. Action, Drama"
-          />
-        </label>
-
-        <label className="form-field">
-          <span>Director</span>
-          <input
-            value={director}
-            onChange={(e) => setDirector(e.target.value)}
-            placeholder="Director name"
-          />
-        </label>
-
-        <button type="submit" className="btn">
-          Create
-        </button>
-
-        {error && <p className="error-text">{error}</p>}
-        {success && <p className="success-text">{success}</p>}
       </form>
 
       <div style={{ marginTop: "1rem" }}>
