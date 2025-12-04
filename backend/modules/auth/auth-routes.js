@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
+const bcrypt = require('bcrypt');
 
 const UserModel = require('../users/users-model');
 
@@ -17,6 +18,7 @@ const transporter = nodemailer.createTransport({
 function generateOtp() {
   return String(Math.floor(100000 + Math.random() * 900000)); 
 }
+
 // POST /api/auth/login
 authRoute.post('/login', async (req, res, next) => {
   try {
@@ -27,12 +29,13 @@ authRoute.post('/login', async (req, res, next) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    if (user.password !== password) {
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
     const otp = generateOtp();
-    const expiry = new Date(Date.now() + 5 * 60 * 1000); 
+    const expiry = new Date(Date.now() + 5 * 60 * 1000);
 
     user.otp = otp;
     user.otpExpiresAt = expiry;
@@ -55,6 +58,7 @@ authRoute.post('/login', async (req, res, next) => {
     next(err);
   }
 });
+
 
 // POST /api/auth/verify-otp
 authRoute.post('/verify-otp', async (req, res, next) => {
