@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { getAuthHeaders } from "../utils/auth";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 function MovieEditPage() {
   const { id } = useParams();
@@ -13,7 +14,7 @@ function MovieEditPage() {
   const [genre, setGenre] = useState("");
 
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError]     = useState("");
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
@@ -22,7 +23,7 @@ function MovieEditPage() {
         setLoading(true);
         setError("");
 
-        const res = await fetch(`${API_URL}/api/movies/${id}`);
+        const res  = await fetch(`${API_URL}/api/movies/${id}`);
         const text = await res.text();
 
         if (!res.ok) {
@@ -37,7 +38,7 @@ function MovieEditPage() {
         } catch {
           throw new Error(
             "Server did not return valid JSON. Response starts with: " +
-              text.slice(0, 80)
+            text.slice(0, 80)
           );
         }
 
@@ -75,9 +76,18 @@ function MovieEditPage() {
     }
 
     try {
+      const authHeaders = getAuthHeaders();
+      if (!authHeaders.Authorization) {
+        setError("You are not logged in. Please log in first.");
+        return;
+      }
+
       const res = await fetch(`${API_URL}/api/movies/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders,
+        },
         body: JSON.stringify({
           title: title.trim(),
           rating: Number(rating),
