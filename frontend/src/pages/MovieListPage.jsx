@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { getAuthHeaders } from "../utils/auth";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -7,6 +8,9 @@ function MovieListPage() {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   async function fetchMovies() {
     try {
@@ -41,11 +45,23 @@ function MovieListPage() {
   }
 
   async function handleDelete(id) {
+    const authHeaders = getAuthHeaders();
+
+    if (!authHeaders.Authorization) {
+      navigate("/login", {
+        state: { from: location.pathname },
+      });
+      return;
+    }
+
     if (!confirm("Are you sure you want to delete this movie?")) return;
 
     try {
       const res = await fetch(`${API_URL}/api/movies/${id}`, {
         method: "DELETE",
+        headers: {
+          ...authHeaders, 
+        },
       });
 
       const text = await res.text();

@@ -9,16 +9,19 @@
 const mongoose = require("mongoose");
 
 const DB_URL = process.env.MONGODB_URI;
-const DB_NAME = process.env.MONGODB_NAME;
+const DB_NAME = process.env.MONGODB_NAME || "movie_review";
 
-async function connectDB(req, res, next) {
+async function connectDB() {
+  if (!DB_URL) {
+    throw new Error("Missing MONGODB_URI in environment variables");
+  }
+
   try {
     await mongoose.connect(DB_URL, { dbName: DB_NAME });
-    console.log("Database Connected");
-    next();
-  } catch (error) {
-    console.log(`Database connection failed`);
-    console.log(error);
+    console.log("MongoDB connected");
+  } catch (err) {
+    console.error("Database connection failed", err);
+    throw err; 
   }
 }
 

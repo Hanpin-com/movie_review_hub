@@ -55,7 +55,6 @@ server.use((err, req, res, next) => {
 (async () => {
   try {
     await connectDB(); // requires MONGODB_URI
-    console.log('MongoDB connected');
     server.listen(port, hostname, () => {
       console.log(`Server running on http://${hostname}:${port}`);
     });
