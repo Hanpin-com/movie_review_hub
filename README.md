@@ -1,332 +1,153 @@
-# 🎬 Movie Review Hub — Phase 5
+# 🎬 Movie Review Hub — Final Capstone Project
 
-## Full-Stack Authentication • OTP Login • JWT Security • RBAC • Secure CRUD Integration
+## Full-Stack Movie Management System
+**Authentication • RBAC • MFA (OTP) • Search/Filter/Pagination • Secure Deployment**
+
+---
+
+## 🚀 Live Demo (Deployment)
+
+| Application | Platform | Status | Link |
+| :--- | :--- | :--- | :--- |
+| **Frontend** | Vercel | 🟢 Live | **[🔗 Click Here to View App](INSERT_YOUR_VERCEL_URL_HERE)** |
+| **Backend** | Render | 🟢 Live | **[🔗 API Endpoint](INSERT_YOUR_RENDER_URL_HERE)** |
+
+> **Note:** The backend is hosted on Render's free tier. It may take roughly 50 seconds to wake up on the first request. Please be patient!
 
 ---
 
 ## 📝 1. Project Overview
 
-This project represents the completion of **Phase 5** in CPAN-212, expanding our movie management system into a **secure, full-stack web application**.
+This project represents the complete, fully functional submission for **CPAN-212**. It is a full-stack web application that allows users to browse movie listings and reviews, while providing a secure environment for administrators to manage content.
 
-Phase 5 introduces **Authentication + Authorization** on top of the earlier CRUD API and frontend integration from Phase 3 & Phase 4.
-
-This final phase includes:
-
-* **Email-based login with OTP (One-Time Password)**
-* **JWT-based authentication**
-* **Role-based authorization (admin / user)**
-* **Protected movie CRUD operations**
-* **Frontend login + OTP forms**
-* **LocalStorage token management**
-* **Secure communication between frontend & backend**
+The system integrates a **React** frontend with a **Node.js/Express** backend and **MongoDB**, featuring advanced security protocols including **MFA (OTP via Email)**, **JWT Authentication**, and **Role-Based Access Control (RBAC)**.
 
 ---
 
-## 🎯 2. Phase 5 Objectives
+## 🎯 2. Features & Functionality
 
-### 🔐 Authentication (Login + OTP)
+### 🔐 Security & Authentication
+* **MFA / OTP Login:** Secure login flow using Email + Password followed by a 6-digit One-Time Password (OTP).
+* **JWT Authorization:** Stateless authentication using JSON Web Tokens stored securely in LocalStorage.
+* **Role-Based Access Control (RBAC):**
+    * **Public:** View movies, view details, pagination, search.
+    * **Admin:** Create, Edit, Delete movies.
+* **Protected Routes:** Frontend guards (React Router) prevent unauthorized access to admin pages.
 
-* Implement `/api/auth/login`
-* Generate a 6-digit OTP
-* Save `otp` + `otpExpiresAt` into MongoDB
-* Implement `/api/auth/verify-otp`
-* Return JWT token + user object
-* Frontend Login Page + OTP Page
-* Store `{ token, user }` in localStorage
+### 🛠 Core Operations
+* **Complete CRUD:** Fully functional Create, Read, Update, and Delete operations for movies.
+* **Advanced Data Retrieval:**
+    * **Pagination:** Efficiently loads movie data in chunks to improve performance.
+    * **Search:** Find movies by title or keyword.
+    * **Filtering:** Filter movies by specific criteria (e.g., genre or release year).
 
-### 🛡 Authorization (RBAC)
-
-* Middleware `auth.js` to verify JWT
-* Middleware `require-role.js` to restrict admin routes
-* Protect CRUD operations:
-
-  * `POST /api/movies` → admin only
-  * `PUT /api/movies/:id` → admin only
-  * `DELETE /api/movies/:id` → admin only
-
-### 🖥 Frontend Integration
-
-* Login Page (email + password)
-* OTP Page
-* Navbar user status (Logged in as…)
-* Logout button
-* Token automatically added in protected routes
-* Admin-only UI for:
-
-  * Add movie
-  * Edit movie
-  * Delete movie
+### 🛡 Error Handling & UX
+* **Backend:** Returns meaningful HTTP status codes (401, 403, 404, 500) and structured JSON error messages.
+* **Frontend:** Displays user-friendly error notifications (e.g., "Invalid OTP," "Server Timeout") instead of crashing.
+* **Loading States:** Visual indicators during data fetching and authentication processes.
 
 ---
 
-## 📁 3. Project Structure
+## 🧠 3. Learning Outcomes
 
-```
+Throughout the development of this project, we explored and mastered several key concepts:
+* **Stateless Authentication:** Learned how to implement JWTs effectively, removing the need for server-side session storage.
+* **Two-Factor Logic:** Gained insight into implementing OTP flows, including handling expiration times and verifying codes against database records.
+* **Middleware Pattern:** Mastered the creation of custom Express middleware to modularize security logic (checking headers, decoding tokens).
+* **Deployment Pipelines:** Learned how to deploy a split-stack application using Vercel (Frontend) and Render (Backend), managing environment variables across different platforms.
+
+---
+
+## 🚧 4. Challenges & Solutions
+
+* **Managing Async OTP Flow:**
+    * *Challenge:* Coordinating the multi-step process of requesting an OTP and verifying it without losing user state.
+    * *Solution:* Split the frontend into two distinct pages (`LoginPage` and `OtpPage`) and utilized the backend database to hold the temporary OTP state.
+* **JWT Persistence:**
+    * *Challenge:* Ensuring the user remained logged in after a page refresh.
+    * *Solution:* Created a utility file to handle LocalStorage operations and automatically inject the `Authorization: Bearer` header into fetch requests.
+* **CORS & Deployment:**
+    * *Challenge:* Communicating between Vercel and Render caused CORS errors during the final phase.
+    * *Solution:* Configured the backend CORS middleware to explicitly allow requests from the Vercel domain.
+
+---
+
+## 🔮 5. Future Improvements
+
+* **Real Email Integration:** Integrate SendGrid or Nodemailer to send actual emails instead of console logging the OTP.
+* **User Registration:** Add a public sign-up flow to allow new users to register.
+* **Image Uploading:** Replace URL text inputs with actual file uploading using Multer and AWS S3/Cloudinary.
+* **User Reviews:** Allow authenticated non-admin users to post and edit their own reviews.
+
+---
+
+## 🔧 6. Technology Stack
+
+### Backend (Deployed on Render)
+* **Runtime:** Node.js
+* **Framework:** Express.js
+* **Database:** MongoDB Atlas (Mongoose)
+* **Security:** `jsonwebtoken`, `bcryptjs`, `express-validator`
+
+### Frontend (Deployed on Vercel)
+* **Framework:** React (Vite)
+* **Routing:** React Router DOM
+* **Styling:** CSS Grid, Responsive Design
+* **State Management:** React Hooks + LocalStorage
+
+---
+
+## 📁 7. Project Structure
+
+```text
 movie_review_hub/
 │
-├── backend/
-│   ├── modules/
-│   │   ├── movies/
-│   │   ├── users/
-│   │   └── reviews/
-│   ├── shared/
-│   │   └── middlewares/
-│   │       ├── auth.js
-│   │       └── require-role.js
-│   ├── server.js
-│   └── .env
+├── backend/            # Express Server
+│   ├── modules/        # Feature-based logic (Movies, Users, Reviews)
+│   ├── shared/         # Middleware (Auth, Role, ErrorHandler)
+│   ├── server.js       # Entry point
+│   └── .env            # Environment variables (Mongo URI, JWT Secret)
 │
-├── frontend/
+├── frontend/           # React Client
 │   ├── src/
-│   │   ├── components/
-│   │   │   └── Navbar.jsx
-│   │   ├── pages/
-│   │   │   ├── LoginPage.jsx
-│   │   │   ├── OtpPage.jsx
-│   │   │   ├── MovieListPage.jsx
-│   │   │   ├── MovieDetailPage.jsx
-│   │   │   ├── MovieCreatePage.jsx
-│   │   │   └── MovieEditPage.jsx
-│   │   ├── utils/auth.js
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   ├── .env
-│   └── package.json
+│   │   ├── components/ # Reusable UI (Navbar, MovieCard)
+│   │   ├── pages/      # Views (Login, OTP, MovieList, Dashboard)
+│   │   ├── utils/      # Auth helpers & API service
+│   │   └── App.jsx     # Main Route definitions
 │
-└── ScreenShot/
-    └── Phase5/
+└── README.md
 ```
 
 ---
 
-## 🔧 4. Technology Stack
+## 👥 8. Team Contributions
 
-### Backend
-
-* Node.js + Express
-* MongoDB Atlas
-* Mongoose ORM
-* JSON Web Token (JWT)
-* express-validator
-* dotenv
-* CORS
-
-### Frontend
-
-* React (Vite)
-* React Router DOM
-* Fetch API
-* LocalStorage-based auth
-* CSS Grid + Responsive UI
+| Member | Role & Contributions |
+| :--- | :--- |
+| **Han-Pin Hung (N01747642)** | Frontend Architecture, UI/UX, React Router, Search/Filter Implementation, Vercel Deployment. |
+| **Eduardo Lee (N01685266)** | Backend Architecture, Database Schema, Auth Middleware, Error Handling logic, Render Deployment. |
 
 ---
 
-## 🔐 5. Authentication Flow (Phase 5)
+## 📎 9. Local Installation
 
-### 1️⃣ User Login
+If you wish to run this locally instead of using the live links:
 
-Client → `POST /api/auth/login`
-Backend:
-
-* Checks email + password
-* Creates 6-digit OTP
-* Saves OTP + expiration to DB
-* Sends OTP (console log or email service)
-
-### 2️⃣ OTP Verification
-
-Client → `POST /api/auth/verify-otp`
-Backend:
-
-* Validates OTP
-* Creates JWT token
-* Returns `{ token, user }`
-
-### 3️⃣ Frontend
-
-* Saves token in `localStorage`
-* Navbar updates ("Logged in as…")
-* Protects UI elements
-* Sends authorization headers for admin routes
-
----
-
-## 🛡 6. Authorization Rules (RBAC)
-
-| Action          | Role Required | Notes                          |
-| --------------- | ------------- | ------------------------------ |
-| View movie list | public        | no login required              |
-| View details    | public        | no login required              |
-| Add movie       | admin         | protected by JWT + requireRole |
-| Edit movie      | admin         | protected                      |
-| Delete movie    | admin         | protected                      |
-| Login, OTP      | public        | used to get token              |
-| Logout          | any           | clears localStorage            |
-
----
-
-## 🧩 7. Backend Code Summary
-
-### ✔ JWT Auth Middleware — `auth.js`
-
-```js
-const jwt = require('jsonwebtoken');
-
-function auth(req, res, next) {
-  const header = req.headers.authorization || '';
-  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
-
-  if (!token) return res.status(401).json({ message: 'No token provided' });
-
-  try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = payload;
-    next();
-  } catch (e) {
-    return res.status(401).json({ message: 'Invalid or expired token' });
-  }
-}
-
-module.exports = auth;
-```
-
-### ✔ Role Middleware — `require-role.js`
-
-```js
-function requireRole(roles = []) {
-  if (!Array.isArray(roles)) roles = [roles];
-
-  return (req, res, next) => {
-    if (!req.user) return res.status(401).json({ message: 'Not authenticated' });
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ message: 'Forbidden: insufficient role' });
-    }
-    next();
-  };
-}
-
-module.exports = requireRole;
-```
-
-### ✔ Protected Movie Routes
-
-```js
-moviesRoute.post('/', auth, requireRole(['admin']), async (req, res, next) => { ... });
-moviesRoute.put('/:id', auth, requireRole(['admin']), async (req, res, next) => { ... });
-moviesRoute.delete('/:id', auth, requireRole(['admin']), async (req, res, next) => { ... });
-```
-
----
-
-## 🖥 8. Frontend Auth Integration
-
-### ✔ Token Storage — `/src/utils/auth.js`
-
-```js
-export function saveAuth(token, user) {
-  localStorage.setItem('moviehub_auth', JSON.stringify({ token, user }));
-}
-
-export function getAuth() {
-  const raw = localStorage.getItem('moviehub_auth');
-  return raw ? JSON.parse(raw) : null;
-}
-
-export function clearAuth() {
-  localStorage.removeItem('moviehub_auth');
-}
-
-export function getAuthHeaders() {
-  const auth = getAuth();
-  return auth?.token ? { Authorization: `Bearer ${auth.token}` } : {};
-}
-```
-
-### ✔ LoginPage.jsx
-
-Collects email + password → calls `/auth/login`.
-
-### ✔ OtpPage.jsx
-
-Collects email + OTP → receives JWT → saves to localStorage → redirects.
-
-### ✔ Navbar.jsx
-
-Shows login/logout + current user.
-
-### ✔ MovieCreate / Edit / Delete
-
-Sends token:
-
-```js
-headers: {
-  'Content-Type': 'application/json',
-  ...getAuthHeaders()
-}
-```
-
----
-
-## 📸 9. Phase 5 Screenshots
-
-Screenshots stored in:
-
-```
-/ScreenShot/Phase5/
-```
-
-| #   | Screenshot          | Description                   |
-| --- | ------------------- | ----------------------------- |
-| 1️⃣ | Login.png           | Login Page                    |
-| 2️⃣ | OTP.png             | OTP Verification Page         |
-| 3️⃣ | Logged-In.png       | Navbar showing logged-in user |
-| 4️⃣ | Movie-Grid.png      | Public movie list             |
-| 5️⃣ | Add-Movie.png       | Add Movie (admin only)        |
-| 6️⃣ | Edit-Movie.png      | Edit Movie (admin only)       |
-| 7️⃣ | Delete-Movie.png    | Delete confirmation           |
-| 8️⃣ | Backend-Running.png | MongoDB + server running      |
-
----
-
-## 👥 10. Team Contributions
-
-### **Phase 3 — Backend**
-
-| Member                       | Contribution                                               |
-| ---------------------------- | ---------------------------------------------------------- |
-| **Han-Pin Hung (N01747642)** | Movies module, Reviews module, CRUD testing, documentation |
-| **Eduardo Lee (N01685266)**  | Users module, server.js, validation, DB integration        |
-| **Both**                     | Postman testing, project structure, README                 |
-
-### **Phase 4 — Frontend**
-
-| Member           | Contribution                                             |
-| ---------------- | -------------------------------------------------------- |
-| **Han-Pin Hung** | Complete React UI, routing, grid layout, API integration |
-| **Eduardo Lee**  | Backend adjustments, CRUD compatibility testing          |
-
-### **Phase 5 — Authentication & Authorization**
-
-| Member           | Contribution                                                            |
-| ---------------- | ----------------------------------------------------------------------- |
-| **Han-Pin Hung** | LoginPage, OtpPage, JWT integration, Navbar, protected routes, admin UI |
-| **Eduardo Lee**  | Backend OTP flow, JWT middleware, role-based protection                 |
-| **Both**         | End-to-end testing, debugging, screenshots, final integration           |
-
----
-
-## 📎 11. Repository
-
-👉 **[https://github.com/Hanpin-com/movie_review_hub](https://github.com/Hanpin-com/movie_review_hub)**
-
-This final submission includes:
-
-* Backend (Phase 3)
-* React Frontend (Phase 4)
-* Authentication (Phase 5)
-* OTP + JWT + RBAC
-* Secure CRUD with admin-only actions
-* Complete screenshots
-* Updated README
-
----
+1.  **Clone the repo:**
+    ```bash
+    git clone [https://github.com/Hanpin-com/movie_review_hub.git](https://github.com/Hanpin-com/movie_review_hub.git)
+    ```
+2.  **Setup Backend:**
+    ```bash
+    cd backend
+    npm install
+    # Create .env file with MONGO_URI and JWT_SECRET
+    npm start
+    ```
+3.  **Setup Frontend:**
+    ```bash
+    cd frontend
+    npm install
+    # Update API_URL to http://localhost:PORT
+    npm run dev
+    ```
